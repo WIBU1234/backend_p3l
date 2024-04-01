@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblalamat', function (Blueprint $table) {
-            $table->integer('ID_Alamat')->primary();
+            $table->integer('ID_Alamat')->autoIncrement();
             $table->integer('ID_Customer')->nullable();
             $table->string('Alamat', 255)->nullable();
             $table->integer('Jarak')->nullable();

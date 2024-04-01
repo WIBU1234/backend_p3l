@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblpegawai', function (Blueprint $table) {
-            $table->integer('ID_Pegawai')->primary();
+            $table->integer('ID_Pegawai')->autoIncrement();
             $table->integer('ID_Jabatan')->nullable();
             $table->string('Nama_Pegawai', 255)->nullable();
             $table->string('Nomor_Rekening', 255)->nullable();
-            $table->string('Email', 255)->nullable();
-            $table->string('Password', 255)->nullable();
+            $table->string('email', 255)->nullable();
+            $table->string('password', 255)->nullable();
             $table->string('Nomor_Telepon', 255)->nullable();
             $table->string('Gaji', 255)->nullable();
             $table->string('Bonus', 255)->nullable();
