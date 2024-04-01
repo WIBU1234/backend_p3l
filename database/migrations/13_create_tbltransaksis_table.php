@@ -22,6 +22,10 @@ return new class extends Migration
             $table->date('Tanggal_Ambil')->nullable();
             $table->dateTime('Tanggal_Pelunasan')->nullable();
             $table->integer('Total_pembayaran')->nullable();
+
+            $table->foreign('ID_Customer')->references('ID_Customer')->on('tblcustomer')->onDelete('cascade');
+            $table->foreign('ID_Pegawai')->references('ID_Pegawai')->on('tblpegawai')->onDelete('cascade');
+            $table->foreign('ID_Alamat')->references('ID_Alamat')->on('tblalamat')->onDelete('cascade');            
         });
     }
 

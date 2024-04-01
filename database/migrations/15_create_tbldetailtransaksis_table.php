@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('ID_Transaksi', 255)->nullable();
             $table->float('Kuantitas')->nullable();
             $table->integer('Sub_Total')->nullable();
+
+            $table->foreign('ID_Produk')->references('ID_Produk')->on('tblproduk');
+            $table->foreign('ID_Transaksi')->references('ID_Transaksi')->on('tbltransaksi');
         });
     }
 

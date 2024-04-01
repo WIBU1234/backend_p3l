@@ -16,6 +16,9 @@ return new class extends Migration
             $table->integer('ID_Penitip')->nullable();
             $table->integer('Harga_Beli')->nullable();
             $table->date('Tanggal_Stok')->nullable();
+
+            $table->foreign('ID_Penitip')->references('ID_Penitip')->on('tblpenitip')->onDelete('cascade');
+            $table->foreign('ID_Produk')->references('ID_Produk')->on('tblproduk')->onDelete('cascade');
         });
     }
 

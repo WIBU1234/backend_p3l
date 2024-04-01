@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tblalamat', function (Blueprint $table) {
-            $table->id('ID_Alamat');
-            $table->integer('ID_Customer')->nullable();
-            $table->string('Alamat', 255)->nullable();
-            $table->integer('Jarak')->nullable();
-            $table->integer('Biaya')->nullable();
+        Schema::create('tblbahanbaku', function (Blueprint $table) {
+            $table->integer('ID_Bahan_Baku')->primary();
+            $table->string('Nama_Bahan', 255)->nullable();
+            $table->integer('Stok')->nullable();
+            $table->string('Satuan', 255)->nullable();
         });
     }
 
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tblalamat');
+        Schema::dropIfExists('tblbahanbaku');
     }
 };

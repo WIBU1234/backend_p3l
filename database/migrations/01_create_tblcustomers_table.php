@@ -11,17 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tblpegawai', function (Blueprint $table) {
-            $table->id('ID_Pegawai');
-            $table->integer('ID_Jabatan')->nullable();
-            $table->string('Nama_Pegawai', 255)->nullable();
-            $table->string('Nomor_Rekening', 255)->nullable();
+        Schema::create('tblcustomer', function (Blueprint $table) {
+            $table->integer('ID_Customer')->primary();
+            $table->string('Nama_Customer', 255)->nullable();
             $table->string('Email', 255)->nullable();
             $table->string('Password', 255)->nullable();
-            $table->string('Nomor_Telepon', 255)->nullable();
-            $table->string('Gaji', 255)->nullable();
-            $table->string('Bonus', 255)->nullable();
+            $table->string('Nomor_telepon', 255)->nullable();
+            $table->integer('Poin')->nullable();
+            $table->integer('Saldo')->nullable();
             $table->integer('OTP')->nullable();
+            $table->string('Profile', 255)->nullable();
         });
     }
 
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tblpegawai');
+        Schema::dropIfExists('tblcustomer');
     }
 };

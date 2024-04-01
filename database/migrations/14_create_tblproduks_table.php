@@ -19,6 +19,8 @@ return new class extends Migration
             $table->float('Stok')->nullable();
             $table->float('StokReady')->nullable();
             $table->string('Gambar', 255)->nullable();
+
+            $table->foreign('ID_Kategori')->references('ID_Kategori')->on('tblkategori')->onDelete('set null');
         });
     }
 
