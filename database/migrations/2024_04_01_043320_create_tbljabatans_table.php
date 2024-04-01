@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tbljabatan', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->increments('ID_Jabatan');
+            $table->string('Nama_Jabatan', 255)->nullable();
         });
     }
 

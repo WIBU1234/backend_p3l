@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblhampers', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->string('ID_Produk', 255);
+            $table->string('Kartu_Ucapan', 255)->nullable();
         });
     }
 

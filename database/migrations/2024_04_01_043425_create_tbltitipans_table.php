@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tbltitipan', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->string('ID_Produk', 255)->primary();
+            $table->integer('ID_Penitip')->nullable();
+            $table->integer('Harga_Beli')->nullable();
+            $table->date('Tanggal_Stok')->nullable();
         });
     }
 

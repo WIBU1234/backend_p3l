@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblresep', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->string('ID_Produk', 255)->primary();
+            $table->integer('Waktu_Memproses')->nullable();
         });
     }
 

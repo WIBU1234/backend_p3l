@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblalamat', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id('ID_Alamat');
+            $table->integer('ID_Customer')->nullable();
+            $table->string('Alamat', 255)->nullable();
+            $table->integer('Jarak')->nullable();
+            $table->integer('Biaya')->nullable();
         });
     }
 

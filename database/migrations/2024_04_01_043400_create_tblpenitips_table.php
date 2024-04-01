@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblpenitip', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->increments('ID_Penitip');
+            $table->string('Nama_Penitip', 255)->nullable();
         });
     }
 

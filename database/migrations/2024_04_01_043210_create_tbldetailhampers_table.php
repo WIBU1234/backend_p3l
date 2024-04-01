@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tbldetailhamper', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->string('ID_Produk', 255)->nullable();
+            $table->string('Hampers_ID_Produk', 255)->nullable();
+            $table->float('Kuantitas')->nullable();
         });
     }
 

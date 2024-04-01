@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblproduk', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->string('ID_Produk', 255)->primary();
+            $table->integer('ID_Kategori')->nullable();
+            $table->string('Nama_Produk', 255)->nullable();
+            $table->integer('Harga')->nullable();
+            $table->float('Stok')->nullable();
+            $table->float('StokReady')->nullable();
+            $table->string('Gambar', 255)->nullable();
         });
     }
 

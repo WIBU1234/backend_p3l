@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblhistorysaldo', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->increments('ID_History');
+            $table->integer('ID_Customer')->nullable();
+            $table->date('Tanggal')->nullable();
+            $table->integer('Total')->nullable();
         });
     }
 

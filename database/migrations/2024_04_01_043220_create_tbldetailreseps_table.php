@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tbldetailresep', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->integer('ID_Bahan_Baku')->nullable();
+            $table->string('ID_Produk', 255)->nullable();
+            $table->integer('Kuantitas')->nullable();
         });
     }
 
