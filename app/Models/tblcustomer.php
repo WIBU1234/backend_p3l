@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Laravel\Passport\HasApiTokens;
 
 class tblcustomer extends Authenticatable
 {
@@ -15,9 +15,9 @@ class tblcustomer extends Authenticatable
     protected $primaryKey = 'ID_Customer';
     protected $fillable = [
         "Nama_Customer",
-        "Email",
-        "Password",
-        "Nomor_Telepon",
+        "email",
+        "password",
+        "Nomor_telepon",
         "Poin",
         "Saldo",
         "OTP",
@@ -25,7 +25,7 @@ class tblcustomer extends Authenticatable
     ];
 
     protected $hidden = [
-        "Password",
+        "password",
         "OTP",
     ];
 

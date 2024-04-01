@@ -15,4 +15,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// helper Rachell ntar dihapus
+Route::post('/registerCustomer', [App\Http\Controllers\AuthController::class, 'registerCustomer']);
+Route::post('/registerPegawai', [App\Http\Controllers\AuthController::class, 'registerPegawai']);
+
+
 Route::post('/register', [App\Http\Controllers\AuthController::class, 'register']);
+Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
+
+Route::middleware('auth:api-pegawai')->group(function () {
+    Route::post('/logoutPegawai', [App\Http\Controllers\AuthController::class, 'logoutPegawai']);
+});
+
+Route::middleware('auth:api-customer')->group(function () {
+    Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
+});
