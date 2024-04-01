@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 class tblcustomer extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens;
+    public $timestamps = false;
     protected $table = 'tblCustomer';
     protected $primaryKey = 'ID_Customer';
     protected $fillable = [

@@ -12,7 +12,7 @@ class AuthController extends Controller
         $registrasiData = $request->all();
         $validate = Validator::make($registrasiData,[
             'Nama_Customer' => 'required|max:60',
-            'Email' => 'required|email:rfc,dns|unique:users',
+            'Email' => 'required|email:rfc,dns|unique:tblCustomer',
             'Password' => 'required',
             'Nomor_Telepon' => 'required|numeric',
             'Profile' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -23,6 +23,7 @@ class AuthController extends Controller
 
         $registrasiData['Poin'] = 0;
         $registrasiData['Saldo'] = 0;
+        $registrasiData['OTP'] = 0;
         $registrasiData['Password'] = bcrypt($request->Password);
 
         $tblCustomer = tblcustomer::create($registrasiData);
