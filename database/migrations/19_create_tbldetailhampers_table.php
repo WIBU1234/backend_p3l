@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tblpegawai', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('tbldetailhamper', function (Blueprint $table) {
+            $table->string('ID_Produk', 255)->nullable();
+            $table->string('Hampers_ID_Produk', 255)->nullable();
+            $table->float('Kuantitas')->nullable();
         });
     }
 
@@ -22,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tblpegawai');
+        Schema::dropIfExists('tbldetailhamper');
     }
 };

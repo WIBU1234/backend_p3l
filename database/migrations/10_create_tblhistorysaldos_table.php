@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblhistorysaldo', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->integer('ID_History')->primary();
+            $table->integer('ID_Customer')->nullable();
+            $table->date('Tanggal')->nullable();
+            $table->integer('Total')->nullable();
+
+            $table->foreign('ID_Customer')->references('ID_Customer')->on('tblcustomer')->onDelete('cascade');
         });
     }
 

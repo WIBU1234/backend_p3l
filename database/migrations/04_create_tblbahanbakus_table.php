@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbldetailhamper', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('tblbahanbaku', function (Blueprint $table) {
+            $table->integer('ID_Bahan_Baku')->primary();
+            $table->string('Nama_Bahan', 255)->nullable();
+            $table->integer('Stok')->nullable();
+            $table->string('Satuan', 255)->nullable();
         });
     }
 
@@ -22,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tbldetailhamper');
+        Schema::dropIfExists('tblbahanbaku');
     }
 };

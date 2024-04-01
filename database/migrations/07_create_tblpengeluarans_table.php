@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tblcustomer', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('tblpengeluaran', function (Blueprint $table) {
+            $table->string('Nama', 255)->nullable();
+            $table->integer('Harga')->nullable();
+            $table->date('Tanggal')->nullable();
         });
     }
 
@@ -22,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tblcustomer');
+        Schema::dropIfExists('tblpengeluaran');
     }
 };

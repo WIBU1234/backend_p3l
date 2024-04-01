@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbljabatan', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('tblresep', function (Blueprint $table) {
+            $table->string('ID_Produk', 255)->primary();
+            $table->integer('Waktu_Memproses')->nullable();
         });
     }
 
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tbljabatan');
+        Schema::dropIfExists('tblresep');
     }
 };

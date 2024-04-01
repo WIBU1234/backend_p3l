@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tblpresensi', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('tblpenitip', function (Blueprint $table) {
+            $table->integer('ID_Penitip')->primary();
+            $table->string('Nama_Penitip', 255)->nullable();
         });
     }
 
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tblpresensi');
+        Schema::dropIfExists('tblpenitip');
     }
 };

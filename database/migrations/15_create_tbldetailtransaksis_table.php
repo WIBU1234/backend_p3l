@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tbldetailtransaksi', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->string('ID_Produk', 255)->nullable();
+            $table->string('ID_Transaksi', 255)->nullable();
+            $table->float('Kuantitas')->nullable();
+            $table->integer('Sub_Total')->nullable();
+
+            $table->foreign('ID_Produk')->references('ID_Produk')->on('tblproduk');
+            $table->foreign('ID_Transaksi')->references('ID_Transaksi')->on('tbltransaksi');
         });
     }
 

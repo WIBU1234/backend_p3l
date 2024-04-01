@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tblpenitip', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('tblhampers', function (Blueprint $table) {
+            $table->string('ID_Produk', 255);
+            $table->string('Kartu_Ucapan', 255)->nullable();
         });
     }
 
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tblpenitip');
+        Schema::dropIfExists('tblhampers');
     }
 };

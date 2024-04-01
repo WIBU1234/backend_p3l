@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblalamat', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->integer('ID_Alamat')->primary();
+            $table->integer('ID_Customer')->nullable();
+            $table->string('Alamat', 255)->nullable();
+            $table->integer('Jarak')->nullable();
+            $table->integer('Biaya')->nullable();
+
+            $table->foreign('ID_Customer')->references('ID_Customer')->on('tblcustomer')->onDelete('cascade');
         });
     }
 
