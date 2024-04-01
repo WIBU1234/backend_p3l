@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('ID_Customer')->nullable();
             $table->string('Alamat', 255)->nullable();
             $table->integer('Jarak')->nullable();
-            $table->integer('Biaya')->nullable();
+            $table->float('Biaya')->nullable();
 
             $table->foreign('ID_Customer')->references('ID_Customer')->on('tblcustomer')->onDelete('cascade');
         });
