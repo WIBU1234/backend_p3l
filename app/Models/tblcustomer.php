@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-class tblcustomer extends Model
+class tblcustomer extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable, HasApiTokens;
     protected $table = 'tblCustomer';
     protected $primaryKey = 'ID_Customer';
     protected $fillable = [
@@ -19,5 +21,14 @@ class tblcustomer extends Model
         "Saldo",
         "OTP",
         "Profile",
+    ];
+
+    protected $hidden = [
+        "Password",
+        "OTP",
+    ];
+
+    protected $casts = [
+        'password' => 'hashed',
     ];
 }
