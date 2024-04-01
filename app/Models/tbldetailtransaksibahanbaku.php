@@ -8,4 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 class tbldetailtransaksibahanbaku extends Model
 {
     use HasFactory;
+    protected $table = 'tblDetailTransaksiBahanBaku';
+    protected $fillable = [
+        "ID_Transaksi_Baku",
+        "ID_Bahan_Baku",
+        "Kuantitas",
+        "Sub_Total",
+    ];
+
+    public function tbltransaksibahanbaku() {
+        return $this->belongsTo(tbltransaksibahanbaku::class, 'ID_Transaksi_Baku', 'ID_Transaksi_Baku');
+    }
+
+    public function tblbahanbaku() {
+        return $this->belongsTo(tblbahanbaku::class, 'ID_Bahan_Baku', 'ID_Bahan_Baku');
+    }
 }

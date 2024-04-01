@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class tblpenitip extends Model
 {
     use HasFactory;
+    protected $table = 'tblPenitip';
+    protected $primaryKey = 'ID_Penitip';
+    protected $fillable = [
+        "Nama_Penitip",
+    ];
 }
