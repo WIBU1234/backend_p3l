@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('Nomor_telepon', 255)->nullable();
             $table->integer('Poin')->nullable();
             $table->integer('Saldo')->nullable();
-            $table->integer('OTP', 6)->nullable();
+            $table->integer('OTP')->nullable();
             $table->string('Profile', 255)->nullable();
         });
     }
