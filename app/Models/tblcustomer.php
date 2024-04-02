@@ -32,4 +32,8 @@ class tblcustomer extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    public function getRole(){
+        return 'Customer';
+    }
 }

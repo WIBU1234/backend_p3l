@@ -38,4 +38,9 @@ class tblpegawai extends Authenticatable
     {
         return $this->belongsTo(tbljabatan::class, 'ID_Jabatan', 'ID_Jabatan');
     }
+
+    public function getRole()
+    {
+        return $this->jabatan->Nama_Jabatan;
+    }
 }
