@@ -32,4 +32,6 @@ class tblcustomer extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    protected $guard = 'customer';
 }
