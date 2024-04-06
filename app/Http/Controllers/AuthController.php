@@ -6,6 +6,7 @@ use App\Models\tblcustomer;
 use App\Models\tblpegawai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
@@ -147,5 +148,15 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Successfully logged out'
         ]);
+    }
+
+    public function sendPassword(Request $request){
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::RESET_LINK_SENT
+                    ? response()->json(['message' => __($status)], 200)
+                    : response()->json(['message' => __($status)], 400);
     }
 }

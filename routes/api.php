@@ -38,6 +38,8 @@ Route::post('/createBahanBaku', [App\Http\Controllers\TblbahanbakuController::cl
 Route::post('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'updateBahanBaku']);
 Route::delete('/deleteBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'deleteBahanBaku']);
 
+Route::post('/password/email', [App\Http\Controllers\AuthController::class, 'sendPassword']);
+
 // Route::middleware('auth:api')->group(function () {
 
 // });
