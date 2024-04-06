@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblcustomer', function (Blueprint $table) {
-            $table->integer('ID_Customer')->primary();
+            $table->integer('ID_Customer')->autoIncrement();
             $table->string('Nama_Customer', 255)->nullable();
-            $table->string('Email', 255)->nullable();
-            $table->string('Password', 255)->nullable();
+            $table->string('email', 255)->nullable();
+            $table->string('password', 255)->nullable();
             $table->string('Nomor_telepon', 255)->nullable();
             $table->integer('Poin')->nullable();
             $table->integer('Saldo')->nullable();
