@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class tblbahanbaku extends Model
 {
     use HasFactory;
+    public $timestamps = false;
     protected $table = 'tblBahanBaku';
     protected $primaryKey = 'ID_Bahan_Baku';
     protected $fillable = [

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TblbahanbakuController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,7 +20,6 @@ use Illuminate\Support\Facades\Route;
 Route::post('/registerCustomer', [App\Http\Controllers\AuthController::class, 'registerCustomer']);
 Route::post('/registerPegawai', [App\Http\Controllers\AuthController::class, 'registerPegawai']);
 
-
 Route::post('/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 
@@ -30,3 +30,13 @@ Route::middleware('auth:api-pegawai')->group(function () {
 Route::middleware('auth:api-customer')->group(function () {
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
 });
+
+
+// Temporary Seto
+Route::get('/getBahanBakuALll', [App\Http\Controllers\TblbahanbakuController::class, 'index']);
+Route::post('/createBahanBaku', [App\Http\Controllers\TblbahanbakuController::class, 'createBahanBaku']);
+Route::post('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'updateBahanBaku']);
+
+// Route::middleware('auth:api')->group(function () {
+
+// });
