@@ -36,6 +36,7 @@ Route::middleware('auth:api-customer')->group(function () {
 Route::get('/getBahanBakuALll', [App\Http\Controllers\TblbahanbakuController::class, 'index']);
 Route::post('/createBahanBaku', [App\Http\Controllers\TblbahanbakuController::class, 'createBahanBaku']);
 Route::post('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'updateBahanBaku']);
+Route::delete('/deleteBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'deleteBahanBaku']);
 
 // Route::middleware('auth:api')->group(function () {
 

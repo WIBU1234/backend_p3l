@@ -97,4 +97,29 @@ class TblbahanbakuController extends Controller
             ], 400);
         }
     }
+
+    public function deleteBahanBaku($id){
+        try{
+            $bahanbaku = tblbahanbaku::find($id);
+
+            if(!$bahanbaku){
+                return response()->json([
+                    'message' => 'Bahan Baku Not Found',
+                    'data' => null,
+                ], 404);
+            }
+
+            $bahanbaku->delete();
+            
+            return response()->json([
+                'message' => 'Delete Bahan Baku Success',
+                'data' => $bahanbaku,
+            ], 200);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Delete Bahan Baku Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
 }
