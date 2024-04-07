@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tblhampers', function (Blueprint $table) {
-            $table->string('ID_Produk', 255);
+            $table->string('ID_Produk', 255)->primary();
             $table->string('Kartu_Ucapan', 255)->nullable();
+
+            $table->foreign('ID_Produk')->references('ID_Produk')->on('tblproduk')->onDelete('cascade');
         });
     }
 

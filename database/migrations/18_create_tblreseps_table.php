@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('tblresep', function (Blueprint $table) {
             $table->string('ID_Produk', 255)->primary();
             $table->integer('Waktu_Memproses')->nullable();
+
+            $table->foreign('ID_Produk')->references('ID_Produk')->on('tblproduk')->onDelete('cascade');
         });
     }
 
