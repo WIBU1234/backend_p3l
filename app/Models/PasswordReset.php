@@ -5,13 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class tblpenitip extends Model
+class PasswordReset extends Model
 {
     use HasFactory;
+
+    public $table = 'password_reset_tokens';
     public $timestamps = false;
-    protected $table = 'tblPenitip';
-    protected $primaryKey = 'ID_Penitip';
     protected $fillable = [
-        "Nama_Penitip",
+        'email',
+        'token',
+        'created_at'
     ];
 }
