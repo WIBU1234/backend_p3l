@@ -34,6 +34,8 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::post('/produk/resep', [App\Http\Controllers\TblprodukController::class, 'storeResep']);
     Route::post('/produk/titipan', [App\Http\Controllers\TblprodukController::class, 'storeTitipan']);
     Route::post('/produk/hampers', [App\Http\Controllers\TblprodukController::class, 'storeHampers']);
+    Route::put('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'update']);
+    
     
 });
 
