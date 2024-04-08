@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TblbahanbakuController;
 use App\Http\Controllers\TblpegawaiController;
+use App\Http\Controllers\TbldetailresepController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -69,4 +70,13 @@ Route::group(['middleware' => 'auth:api-pegawai'], function () {
     Route::delete('/pegawai/{id}', [TblpegawaiController::class, 'delete']);
     Route::put('/update-gaji/{id}', [TblpegawaiController::class, 'updateGaji']);
     Route::put('/update-bonus/{id}', [TblpegawaiController::class, 'updateBonus']);
+});
+
+//Resep Kelvin (ON PROGRESS)
+Route::group(['middleware' => 'auth:api-detail-resep'], function() {
+    Route::get('/detail-resep', [TbldetailresepController::class, 'index']);
+    Route::post('/detail-resep', [TbldetailresepController::class, 'store']);
+    Route::get('/detail-resep/{id}', [TbldetailresepController::class, 'show']);
+    Route::put('/detail-resep/{id}', [TbldetailresepController::class, 'update']);
+    Route::delete('/detail-resep/{id}', [TbldetailresepController::class, 'delete']);
 });
