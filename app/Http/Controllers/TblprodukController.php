@@ -262,4 +262,45 @@ class TblprodukController extends Controller
             'data' => null 
         ], 400);
     }
+
+    public function show(string $id)
+    {
+        $produk =  tblproduk::find($id);
+
+        if (!is_null($produk)) {
+            return response([
+                'message' => 'Produk found',
+                'data' => $produk
+            ], 200);
+        }
+
+        return response([
+            'message' => 'Produk not found',
+            'data' => null
+        ], 404);
+    }
+
+    public function destroy(string $id)
+    {
+        $produk = tblproduk::find($id);
+
+        if (is_null($produk)) {
+            return response([
+                'message' => 'Produk not found', 
+                'data' => null 
+            ], 404);
+        }
+
+        if ($produk->delete()) {
+            return response([
+                'message' => 'Delete produk Success',
+                'data' => $produk
+            ], 200);
+        }
+
+        return response([
+            'message' => 'Delete Produk Failed',
+            'data' => null
+        ], 400);
+    }
 }

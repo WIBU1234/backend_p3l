@@ -35,8 +35,8 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::post('/produk/titipan', [App\Http\Controllers\TblprodukController::class, 'storeTitipan']);
     Route::post('/produk/hampers', [App\Http\Controllers\TblprodukController::class, 'storeHampers']);
     Route::put('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'update']);
-    
-    
+    Route::get('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'show']);
+    Route::delete('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'destroy']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
