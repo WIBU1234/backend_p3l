@@ -30,6 +30,11 @@ Route::middleware(['auth:api-pegawai', 'role:Admin,Owner,MO'])->group(function (
 
 Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     //Rute yang cuma bisa diakses Admin
+    Route::get('/produk', [App\Http\Controllers\TblprodukController::class, 'index']);
+    Route::post('/produk/resep', [App\Http\Controllers\TblprodukController::class, 'storeResep']);
+    Route::post('/produk/titipan', [App\Http\Controllers\TblprodukController::class, 'storeTitipan']);
+    Route::post('/produk/hampers', [App\Http\Controllers\TblprodukController::class, 'storeHampers']);
+    
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {

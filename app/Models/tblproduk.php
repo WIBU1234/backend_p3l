@@ -8,9 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class tblproduk extends Model
 {
     use HasFactory;
-    protected $table = 'tblProduk';
+    public $timestamps = false;
+    protected $table = 'tblproduk';
     protected $primaryKey = 'ID_Produk';
+    protected $keyType = 'string';
+    public $incrementing = false;
     protected $fillable = [
+        "ID_Produk",
         "ID_Kategori",
         "Nama_Produk",
         "Harga",

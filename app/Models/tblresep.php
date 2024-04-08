@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class tblresep extends Model
 {
     use HasFactory;
+    public $timestamps = false;
     protected $table = 'tblResep';
     protected $primaryKey = 'ID_Produk';
     protected $fillable = [

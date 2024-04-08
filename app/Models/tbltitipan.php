@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class tbltitipan extends Model
 {
     use HasFactory;
+    public $timestamps = false;
     protected $table = 'tblTitipan';
     protected $primaryKey = 'ID_Produk';
     protected $fillable = [
@@ -20,5 +21,9 @@ class tbltitipan extends Model
     public function penitip()
     {
         return $this->belongsTo(tblpenitip::class, 'ID_Penitip', 'ID_Penitip');
+    }
+
+    public function tblproduk() {
+        return $this->belongsTo(tblproduk::class, 'ID_Produk', 'ID_Produk');
     }
 }
