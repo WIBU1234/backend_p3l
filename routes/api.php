@@ -33,13 +33,16 @@ Route::middleware('auth:api-customer')->group(function () {
 
 
 // Temporary Seto
-Route::get('/getBahanBakuALll', [App\Http\Controllers\TblbahanbakuController::class, 'index']);
+Route::get('/getBahanBakuAll', [App\Http\Controllers\TblbahanbakuController::class, 'index']);
 Route::post('/createBahanBaku', [App\Http\Controllers\TblbahanbakuController::class, 'createBahanBaku']);
-Route::post('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'updateBahanBaku']);
+Route::put('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'updateBahanBaku']);
 Route::delete('/deleteBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'deleteBahanBaku']);
+
+Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
+Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
+Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
+Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
 
 Route::post('/forget-password', [App\Http\Controllers\TblcustomerController::class, 'forgetPassword']);
 
-// Route::middleware('auth:api')->group(function () {
 
-// });

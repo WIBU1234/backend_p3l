@@ -12,13 +12,13 @@ class TblbahanbakuController extends Controller
         try{
             $bahanbaku = tblbahanbaku::all();
             return response()->json([
-                'message' => 'Fetch All Acara Success',
+                'message' => 'Fetch All Bahan Baku Success',
                 'data' => $bahanbaku,
             ], 200);
 
         } catch(\Exception $e){
             return response()->json([
-                'message' => 'Fetch All Acara Failed',
+                'message' => 'Fetch All Bahan Baku Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }        
