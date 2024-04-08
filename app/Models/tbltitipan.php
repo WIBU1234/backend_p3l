@@ -11,6 +11,8 @@ class tbltitipan extends Model
     public $timestamps = false;
     protected $table = 'tblTitipan';
     protected $primaryKey = 'ID_Produk';
+    protected $keyType = 'string';
+    public $incrementing = false;
     protected $fillable = [
         "ID_Produk",
         "ID_Penitip",

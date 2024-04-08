@@ -68,14 +68,18 @@ class TblhampersController extends Controller
         if ($validate->fails())
             return response(['message' => $validate->errors()], 400);
 
-        $produk = tblhampers::find($updatedHampers['ID_Produk']);
-        if ($produk == null) {
-            return response([
-                'message' => 'Hampers Not Found'
-            ], 404);
-        }
+        $tblhampers->update($request->only('Kartu_Ucapan'));
 
-        $tblhampers->update($updatedHampers);
+        if ($request->has('recipes')) {
+            $recipes = $request->input('recipes');
+
+            $recipesData = [];
+            foreach ($recipes as $data) {
+                $recipesData[$data['ID_Produk']] = ['Kuantitas' => $data['Kuantitas']];
+            }
+
+            $tblhampers->resep()->sync($recipesData);
+        }
         return response([
             'message' => 'Resep Berhasil Diupdate',
             'data' => $tblhampers
@@ -92,6 +96,7 @@ class TblhampersController extends Controller
             ], 404);
         }
 
+        $tblhampers->resep()->detach();
         $tblhampers->delete();
         return response([
             'message' => 'Resep Berhasil Dihapus',

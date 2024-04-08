@@ -63,6 +63,7 @@ Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
 
 Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     //Rute yang cuma bisa diakses MO
+
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
