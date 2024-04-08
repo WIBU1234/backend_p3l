@@ -34,8 +34,15 @@ class tblpegawai extends Authenticatable
         'password' => 'hashed',
     ];
 
+    protected $guard = 'pegawai';
+
     public function jabatan()
     {
         return $this->belongsTo(tbljabatan::class, 'ID_Jabatan', 'ID_Jabatan');
+    }
+
+    public function getRole()
+    {
+        return $this->jabatan->Nama_Jabatan;
     }
 }

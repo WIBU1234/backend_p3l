@@ -15,6 +15,9 @@ return new class extends Migration
             $table->string('ID_Produk', 255)->nullable();
             $table->string('Hampers_ID_Produk', 255)->nullable();
             $table->float('Kuantitas')->nullable();
+
+            $table->foreign('ID_Produk')->references('ID_Produk')->on('tblresep')->onDelete('cascade');
+            $table->foreign('Hampers_ID_Produk')->references('ID_Produk')->on('tblhampers')->onDelete('cascade');
         });
     }
 
