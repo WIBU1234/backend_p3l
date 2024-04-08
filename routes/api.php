@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TblbahanbakuController;
+use App\Http\Controllers\TblpegawaiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -54,3 +55,12 @@ Route::post('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuControlle
 // Route::middleware('auth:api')->group(function () {
 
 // });
+
+// Pegawai Kelvin (ON PROGRESS)
+Route::group(['middleware' => 'auth:api-pegawai'], function () {
+    Route::get('/pegawai', [TblpegawaiController::class, 'index']);
+    Route::post('/pegawai', [TblpegawaiController::class, 'store']);
+    Route::get('/pegawai/{nama}', [TblpegawaiController::class, 'show']);
+    Route::put('/pegawai/{id}', [TblpegawaiController::class, 'update']);
+    Route::delete('/pegawai/{id}', [TblpegawaiController::class, 'delete']);
+});
