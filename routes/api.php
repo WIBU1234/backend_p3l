@@ -37,6 +37,24 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::put('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'update']);
     Route::get('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'show']);
     Route::delete('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'destroy']);
+
+    Route::get('/hampers', [App\Http\Controllers\TblhampersController::class, 'index']);
+    Route::post('/hampers', [App\Http\Controllers\TblhampersController::class, 'store']);
+    Route::get('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'show']);
+    Route::put('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'update']);
+    Route::delete('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'destroy']);
+
+    Route::get('/titipan', [App\Http\Controllers\TbltitipanController::class, 'index']);
+    Route::post('/titipan', [App\Http\Controllers\TbltitipanController::class, 'store']);
+    Route::get('/titipan/{id}', [App\Http\Controllers\TbltitipanController::class, 'show']);
+    Route::put('/titipan/{id}', [App\Http\Controllers\TbltitipanController::class, 'update']);
+    Route::delete('/titipan/{id}', [App\Http\Controllers\TbltitipanController::class, 'destroy']);
+
+    Route::get('/resep', [App\Http\Controllers\TblresepController::class, 'index']);
+    Route::post('/resep', [App\Http\Controllers\TblresepController::class, 'store']);
+    Route::get('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'show']);
+    Route::put('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'update']);
+    Route::delete('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'destroy']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
