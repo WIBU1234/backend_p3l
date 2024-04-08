@@ -127,4 +127,50 @@ class TblpegawaiController extends Controller
             ], 200);
         }
     }
+
+    public function updateGaji (Request $request, $id) {
+        $tblPegawai = tblpegawai::find($id);
+
+        $updateGaji = request()->validate([
+            'Gaji' => 'required'
+        ]);
+
+        if (is_null($tblPegawai)) {
+            return response()->json([
+                'message' => 'Data Pegawai Tidak Ditemukan',
+                'status' => 404
+            ], 404);
+        } else {
+            $tblPegawai->Gaji = $updateGaji['Gaji'];
+            $tblPegawai->save();
+            return response()->json([
+                'message' => 'Data Gaji Pegawai Berhasil Diupdate',
+                'status' => 200,
+                'data' => $tblPegawai
+            ], 200);
+        }
+    }
+
+    public function updateBonus (Request $request, $id) {
+        $tblPegawai = tblpegawai::find($id);
+
+        $updateBonus = request()->validate([
+            'Bonus' => 'required'
+        ]);
+
+        if (is_null($tblPegawai)) {
+            return response()->json([
+                'message' => 'Data Pegawai Tidak Ditemukan',
+                'status' => 404
+            ], 404);
+        } else {
+            $tblPegawai->Bonus = $updateBonus['Bonus'];
+            $tblPegawai->save();
+            return response()->json([
+                'message' => 'Data Bonus Pegawai Berhasil Diupdate',
+                'status' => 200,
+                'data' => $tblPegawai
+            ], 200);
+        }
+    }
 }

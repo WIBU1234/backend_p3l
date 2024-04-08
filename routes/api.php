@@ -63,4 +63,6 @@ Route::group(['middleware' => 'auth:api-pegawai'], function () {
     Route::get('/pegawai/{nama}', [TblpegawaiController::class, 'show']);
     Route::put('/pegawai/{id}', [TblpegawaiController::class, 'update']);
     Route::delete('/pegawai/{id}', [TblpegawaiController::class, 'delete']);
+    Route::put('/update-gaji/{id}', [TblpegawaiController::class, 'updateGaji']);
+    Route::put('/update-bonus/{id}', [TblpegawaiController::class, 'updateBonus']);
 });
