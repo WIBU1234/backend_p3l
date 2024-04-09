@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TblbahanbakuController;
+use App\Http\Controllers\TblpegawaiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -73,10 +74,25 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
 
 
 // Temporary Seto
-Route::get('/getBahanBakuALll', [App\Http\Controllers\TblbahanbakuController::class, 'index']);
+Route::get('/getBahanBakuAll', [App\Http\Controllers\TblbahanbakuController::class, 'index']);
 Route::post('/createBahanBaku', [App\Http\Controllers\TblbahanbakuController::class, 'createBahanBaku']);
-Route::post('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'updateBahanBaku']);
+Route::put('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'updateBahanBaku']);
+Route::delete('/deleteBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'deleteBahanBaku']);
 
-// Route::middleware('auth:api')->group(function () {
+Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
+Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
+Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
+Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
 
-// });
+Route::post('/forget-password', [App\Http\Controllers\TblcustomerController::class, 'forgetPassword']);
+
+// Pegawai Kelvin (ON PROGRESS)
+Route::group(['middleware' => 'auth:api-pegawai'], function () {
+    Route::get('/pegawai', [TblpegawaiController::class, 'index']);
+    Route::post('/pegawai', [TblpegawaiController::class, 'store']);
+    Route::get('/pegawai/{nama}', [TblpegawaiController::class, 'show']);
+    Route::put('/pegawai/{id}', [TblpegawaiController::class, 'update']);
+    Route::delete('/pegawai/{id}', [TblpegawaiController::class, 'delete']);
+    Route::put('/update-gaji/{id}', [TblpegawaiController::class, 'updateGaji']);
+    Route::put('/update-bonus/{id}', [TblpegawaiController::class, 'updateBonus']);
+});

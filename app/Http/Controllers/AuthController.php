@@ -6,6 +6,7 @@ use App\Models\tblcustomer;
 use App\Models\tblpegawai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
@@ -120,6 +121,7 @@ class AuthController extends Controller
                 'users' => $loginData
             ],401);
         }
+        
 
         $token = $user->createToken('Authentication Token')->accessToken;
 
