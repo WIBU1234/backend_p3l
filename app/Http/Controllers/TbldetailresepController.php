@@ -25,31 +25,60 @@ class TbldetailresepController extends Controller
         }
     }
 
-    public function store(array $dataArray) {
-        foreach ($dataArray as $data) {
-            $validate = Validator::make($data, [
-                'ID_Produk' => 'required',
-                'ID_Bahan_Baku' => 'required',
-                'Kuantitas' => 'required'
-            ]);
+    // public function store(array $dataArray) {
+    //     foreach ($dataArray as $data) {
+    //         $validate = Validator::make($data, [
+    //             'ID_Produk' => 'required',
+    //             'ID_Bahan_Baku' => 'required',
+    //             'Kuantitas' => 'required'
+    //         ]);
     
-            if ($validate->fails()) {
-                return response([
-                    'message' => $validate->errors(),
-                    'status' => 404
-                ], 404);
-            } else {
-                $tblDetailResep = tbldetailresep::create($data);
-                return response()->json([
-                    'message' => 'Detail Resep Berhasil Disimpan',
-                    'status' => 200,
-                    'data' => $tblDetailResep
-                ], 200);
-            }
-        }        
+    //         if ($validate->fails()) {
+    //             return response([
+    //                 'message' => $validate->errors(),
+    //                 'status' => 404
+    //             ], 404);
+    //         } else {
+    //             $tblDetailResep = tbldetailresep::create($data);
+    //             return response()->json([
+    //                 'message' => 'Detail Resep Berhasil Disimpan',
+    //                 'status' => 200,
+    //                 'data' => $tblDetailResep
+    //             ], 200);
+    //         }
+    //     }        
+    // }
+
+    private function validateItem($data)
+    {
+        return validator($data, [
+            'ID_Bahan_baku' => 'required',
+            'ID_Produk' => 'required',
+            'Kuantitas' => 'required|numeric|min:0',
+        ])->validate();
     }
 
-    public function show(int $id) {
+    public function store(Request $request) {
+        $simpanDetailResep = $request->all();
+        
+        foreach ($simpanDetailResep as $data) {
+            $validateData = $this->validateItem($data);
+
+            $tblDetailResep = tbldetailresep::create($validateData);
+        }
+
+        var_dump($tblDetailResep);
+
+        return response()->json([
+            'message' => 'Detail Resep Berhasil Disimpan',
+            'status' => 200,
+            'data' => $tblDetailResep
+        ], 200);
+
+        
+    }
+
+    public function show(string $id) {
         $tblDetailResep = tbldetailresep::find($id);
 
         if(is_null($tblDetailResep)) {
