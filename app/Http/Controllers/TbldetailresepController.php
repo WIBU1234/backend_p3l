@@ -25,34 +25,10 @@ class TbldetailresepController extends Controller
         }
     }
 
-    // public function store(array $dataArray) {
-    //     foreach ($dataArray as $data) {
-    //         $validate = Validator::make($data, [
-    //             'ID_Produk' => 'required',
-    //             'ID_Bahan_Baku' => 'required',
-    //             'Kuantitas' => 'required'
-    //         ]);
-    
-    //         if ($validate->fails()) {
-    //             return response([
-    //                 'message' => $validate->errors(),
-    //                 'status' => 404
-    //             ], 404);
-    //         } else {
-    //             $tblDetailResep = tbldetailresep::create($data);
-    //             return response()->json([
-    //                 'message' => 'Detail Resep Berhasil Disimpan',
-    //                 'status' => 200,
-    //                 'data' => $tblDetailResep
-    //             ], 200);
-    //         }
-    //     }        
-    // }
-
     private function validateItem($data)
     {
         return validator($data, [
-            'ID_Bahan_baku' => 'required',
+            'ID_Bahan_Baku' => 'required',
             'ID_Produk' => 'required',
             'Kuantitas' => 'required|numeric|min:0',
         ])->validate();
@@ -64,18 +40,16 @@ class TbldetailresepController extends Controller
         foreach ($simpanDetailResep as $data) {
             $validateData = $this->validateItem($data);
 
-            $tblDetailResep = tbldetailresep::create($validateData);
+            tbldetailresep::create($validateData);
         }
 
-        var_dump($tblDetailResep);
+        $detailResep = tbldetailresep::where('ID_Produk', $simpanDetailResep[0]['ID_Produk'])->get();
 
         return response()->json([
             'message' => 'Detail Resep Berhasil Disimpan',
             'status' => 200,
-            'data' => $tblDetailResep
+            'data' => $detailResep
         ], 200);
-
-        
     }
 
     public function show(string $id) {
@@ -95,41 +69,34 @@ class TbldetailresepController extends Controller
         }
     }
 
-    public function update(array $dataArray, int $id) {
-        foreach ($dataArray as $data) {
-            $validate = Validator::make($data, [
-                'ID_Produk' => 'required',
-                'ID_Bahan_Baku' => 'required',
-                'Jumlah' => 'required'
-            ]);
-    
-            if ($validate->fails()) {
-                return response([
-                    'message' => $validate->errors(),
+    public function update(request $request, string $id) {
+        $simpanDetailResep = $request->all();
+        
+        foreach ($simpanDetailResep as $data) {
+            $validateData = $this->validateItem($data);
+
+            $tblDetailResep = tbldetailresep::where('ID_Produk', $id)->first();
+            if (is_null($tblDetailResep)) {
+                return response()->json([
+                    'message' => 'Detail Resep Tidak Ditemukan',
                     'status' => 404
                 ], 404);
             } else {
-                $tblDetailResep = tbldetailresep::find($id);
-    
-                if (is_null($tblDetailResep)) {
-                    return response()->json([
-                        'message' => 'Detail Resep Tidak Ditemukan',
-                        'status' => 404
-                    ], 404);
-                } else {
-                    $tblDetailResep->update($data);
-                    return response()->json([
-                        'message' => 'Detail Resep Berhasil Diupdate',
-                        'status' => 200,
-                        'data' => $tblDetailResep
-                    ], 200);
-                }
+                $tblDetailResep->update($validateData);
             }
         }
+
+
+
+        return response()->json([
+            'message' => 'Detail Resep Berhasil Diupdate',
+            'status' => 200,
+            'data' => $tblDetailResep
+        ], 200);
     }
 
-    public function destroy(int $id) {
-        $tblDetailResep = tbldetailresep::find($id);
+    public function destroy(string $id) {
+        $tblDetailResep = tbldetailresep::where('ID_Produk', $id)->get();
 
         if (is_null($tblDetailResep)) {
             return response()->json([
