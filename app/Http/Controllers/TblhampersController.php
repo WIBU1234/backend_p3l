@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 class TblhampersController extends Controller
 {
     public function index() {
-        $hampers = tblhampers::with(['tblproduk'])->get();
+        $hampers = tblhampers::with(['tblproduk', 'resep'])->get();
 
         if (count($hampers) > 0) {
             return response([
@@ -105,7 +105,7 @@ class TblhampersController extends Controller
     }
 
     public function show($id) {
-        $tblhampers = tblhampers::with(['tblproduk'])->find($id);
+        $tblhampers = tblhampers::with(['tblproduk', 'resep'])->find($id);
 
         if ($tblhampers == null) {
             return response([
