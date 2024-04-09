@@ -42,8 +42,8 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::get('/hampers', [App\Http\Controllers\TblhampersController::class, 'index']);
     Route::post('/hampers', [App\Http\Controllers\TblhampersController::class, 'store']);
     Route::get('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'show']);
-    Route::put('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'update']);
-    Route::delete('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'destroy']);
+    Route::put('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'update']); // update isi hampers by idhampers
+    Route::delete('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'destroy']); // detach semua isi hampers by idhampers
 
     Route::get('/titipan', [App\Http\Controllers\TbltitipanController::class, 'index']);
     Route::post('/titipan', [App\Http\Controllers\TbltitipanController::class, 'store']);
