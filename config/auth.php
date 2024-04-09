@@ -60,6 +60,11 @@ return [
             'driver' => 'passport',
             'provider' => 'pegawai',
         ],
+
+        'api-detail-resep' => [
+            'driver' => 'passport',
+            'provider' => 'pegawai',
+        ]
     ],
 
     /*
