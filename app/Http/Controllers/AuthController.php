@@ -122,12 +122,13 @@ class AuthController extends Controller
             ],401);
         }
         
-
+        $role = $user->getRole();
         $token = $user->createToken('Authentication Token')->accessToken;
 
         return response([
             'message' => 'Authenticated',
             'user'=> $user,
+            'role' => $role,
             'token_type' => 'Bearer',
             'access_token'=> $token,
         ]);

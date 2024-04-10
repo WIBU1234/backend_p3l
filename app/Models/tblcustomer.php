@@ -25,7 +25,6 @@ class tblcustomer extends Authenticatable
     ];
 
     protected $hidden = [
-        "password",
         "OTP",
     ];
 
