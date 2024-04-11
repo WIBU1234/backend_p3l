@@ -98,10 +98,13 @@ Route::group(['middleware' => 'auth:api-pegawai'], function () {
     Route::put('/update-bonus/{id}', [TblpegawaiController::class, 'updateBonus']);
 });
 
+Route::post('/detail-resep', [TbldetailresepController::class, 'store']);
+Route::get('/detail-resep', [TbldetailresepController::class, 'index']);
+
 //Resep Kelvin (ON PROGRESS)
 Route::group(['middleware' => 'auth:api-detail-resep'], function() {
-    Route::get('/detail-resep', [TbldetailresepController::class, 'index']);
-    Route::post('/detail-resep', [TbldetailresepController::class, 'store']);
+    
+
     Route::get('/detail-resep/{id}', [TbldetailresepController::class, 'show']);
     Route::put('/detail-resep/{id}', [TbldetailresepController::class, 'update']);
     Route::delete('/detail-resep/{id}', [TbldetailresepController::class, 'delete']);

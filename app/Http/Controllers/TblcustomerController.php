@@ -11,6 +11,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class TblcustomerController extends Controller
 {
@@ -19,6 +20,10 @@ class TblcustomerController extends Controller
     public function forgetPassword(Request $request)
     {
         try{
+            $request->validate([
+                'email' => 'required|email',
+            ]);
+
             $user = tblcustomer::where('email', $request->email)->get();
 
             if ($user->isEmpty()) {
@@ -27,11 +32,14 @@ class TblcustomerController extends Controller
                 ], 404);
             }
 
+            $resetCreated = PasswordReset::where('email', $request->email)->delete();
+
             $token = Str::random(40);
             $domain = URL::to('/');
             $url = $domain . '/reset-password?token='.$token;
 
             $data['url'] = $url;
+            // $data['token'] = $token;
             $data['email'] = $request->email;
             $data['title'] = 'Reset Password';
             $data['body'] = 'Silahkan klik link dibawah ini untuk mereset password anda';
@@ -39,6 +47,16 @@ class TblcustomerController extends Controller
             Mail::send('forgotPasswordMail', ['data'=>$data], function($message) use ($data){
                 $message->to($data['email'])->subject($data['title']);
             });
+
+            // try {
+            //     Mail::send('forgotPasswordMail', ['data'=>$data], function($message) use ($data){
+            //         $message->to($data['email'])->subject($data['title']);
+            //     });
+            // } catch (\Exception $e) {
+            //     Log::error('Mail sending failed:', [
+            //         'message' => $e->getMessage(),
+            //     ]);
+            // }
 
             $datetime = Carbon::now()->format('Y-m-d H:i:s');
             PasswordReset::updateOrCreate(
@@ -54,12 +72,16 @@ class TblcustomerController extends Controller
                 'message' => 'Silahkan cek email anda untuk mereset password'
             ], 200);
 
-        }catch(\Exception $e){
-
+        }
+        catch(\Exception $e){
+            Log::error('Error in forgetPassword:', [
+                'message' => $e->getMessage(),
+            ]);
             return response()->json([
                 'message' => 'Gagal',
-                'data' => $e
+                'data' => $e->getMessage() // change this to get the actual error message
             ], 400);
         }
+
     }
 }

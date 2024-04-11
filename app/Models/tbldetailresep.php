@@ -9,7 +9,7 @@ class tbldetailresep extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = 'tblDetailResep';
+    protected $table = 'tbldetailresep';
     protected $fillable = [
         "ID_Bahan_Baku",
         "ID_Produk",
