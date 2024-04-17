@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 class TbltitipanController extends Controller
 {
     public function index() {
-        $titipan = tbltitipan::with(['tblproduk'])->get();
+        $titipan = tbltitipan::with(['tblproduk', 'penitip'])->get();
 
         if (count($titipan) > 0) {
             return response([
