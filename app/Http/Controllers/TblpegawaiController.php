@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 class TblpegawaiController extends Controller
 {
     public function index() {
-        $tblPegawai = tblpegawai::all();
+        $tblPegawai = tblpegawai::with('jabatan')->get();
 
         if (count($tblPegawai) == 0) {
             return response()->json([
