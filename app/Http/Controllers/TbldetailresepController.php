@@ -113,7 +113,18 @@ class TbldetailresepController extends Controller
         }
     }
 
-    public function showRelatedProduct(string $namaBahan){
+    public function showRelatedProduct(){
+        $namaBahan = request()->validate([
+            'Nama_Bahan' => 'required'
+        ]);
+
+        if(!$namaBahan){
+            return response()->json([
+                'message' => 'Nama Bahan Tidak Boleh Kosong',
+                'status' => 400
+            ], 400);
+        }
+
         $result = DB::table('tblbahanbaku as BK')
             ->join('tbldetailresep as DR', 'DR.ID_Bahan_Baku', '=', 'BK.ID_Bahan_Baku')
             ->join('tblresep as R', 'R.ID_Produk', '=', 'DR.ID_Produk')
