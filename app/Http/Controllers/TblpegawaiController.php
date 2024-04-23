@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\tblpegawai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Ramsey\Uuid\Type\Integer;
 
 class TblpegawaiController extends Controller
 {
