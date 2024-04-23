@@ -14,7 +14,7 @@ return new class extends Migration
     {
         DB::unprepared('
         CREATE TRIGGER insert_child_produk
-        BEFORE INSERT ON tblProduk
+        AFTER INSERT ON tblProduk
         FOR EACH ROW
         BEGIN
         IF (NEW.ID_Produk LIKE "PN%") THEN

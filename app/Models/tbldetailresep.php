@@ -11,8 +11,8 @@ class tbldetailresep extends Model
     public $timestamps = false;
     protected $table = 'tbldetailresep';
     protected $fillable = [
-        "ID_Produk",
         "ID_Bahan_Baku",
+        "ID_Produk",
         "Kuantitas",
     ];
 

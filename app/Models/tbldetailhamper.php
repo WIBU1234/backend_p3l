@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class tbldetailhampers extends Model
+class tbldetailhamper extends Model
 {
     use HasFactory;
-    protected $table = 'tblDetailHampers';
+    public $timestamps = false;
+    protected $table = 'tbldetailhamper';
     protected $fillable = [
         "ID_Produk",
         "Hampers_ID_Produk",

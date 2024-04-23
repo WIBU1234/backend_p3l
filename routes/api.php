@@ -32,6 +32,31 @@ Route::middleware(['auth:api-pegawai', 'role:Admin,Owner,MO'])->group(function (
 
 Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     //Rute yang cuma bisa diakses Admin
+    Route::get('/produk', [App\Http\Controllers\TblprodukController::class, 'index']);
+    Route::post('/produk/resep', [App\Http\Controllers\TblprodukController::class, 'storeResep']);
+    Route::post('/produk/titipan', [App\Http\Controllers\TblprodukController::class, 'storeTitipan']);
+    Route::post('/produk/hampers', [App\Http\Controllers\TblprodukController::class, 'storeHampers']);
+    Route::put('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'update']);
+    Route::get('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'show']);
+    Route::delete('/produk/{id}', [App\Http\Controllers\TblprodukController::class, 'destroy']);
+
+    Route::get('/hampers', [App\Http\Controllers\TblhampersController::class, 'index']);
+    Route::post('/hampers', [App\Http\Controllers\TblhampersController::class, 'store']);
+    Route::get('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'show']);
+    Route::put('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'update']); // update isi hampers by idhampers
+    Route::delete('/hampers/{id}', [App\Http\Controllers\TblhampersController::class, 'destroy']); // detach semua isi hampers by idhampers
+
+    Route::get('/titipan', [App\Http\Controllers\TbltitipanController::class, 'index']);
+    Route::post('/titipan', [App\Http\Controllers\TbltitipanController::class, 'store']);
+    Route::get('/titipan/{id}', [App\Http\Controllers\TbltitipanController::class, 'show']);
+    Route::put('/titipan/{id}', [App\Http\Controllers\TbltitipanController::class, 'update']);
+    Route::delete('/titipan/{id}', [App\Http\Controllers\TbltitipanController::class, 'destroy']);
+
+    Route::get('/resep', [App\Http\Controllers\TblresepController::class, 'index']);
+    Route::post('/resep', [App\Http\Controllers\TblresepController::class, 'store']);
+    Route::get('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'show']);
+    Route::put('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'update']);
+    Route::delete('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'destroy']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
@@ -40,6 +65,7 @@ Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
 
 Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     //Rute yang cuma bisa diakses MO
+
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {

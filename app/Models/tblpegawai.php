@@ -26,7 +26,6 @@ class tblpegawai extends Authenticatable
     ];
 
     protected $hidden = [
-        "password",
         "OTP",
     ];
 
