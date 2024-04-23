@@ -103,11 +103,11 @@ Route::get('/detail-resep', [TbldetailresepController::class, 'index']);
 
 //Resep Kelvin (ON PROGRESS)
 Route::group(['middleware' => 'auth:api-detail-resep'], function() {
-    
-
     Route::get('/detail-resep/{id}', [TbldetailresepController::class, 'show']);
     Route::put('/detail-resep/{id}', [TbldetailresepController::class, 'update']);
     Route::delete('/detail-resep/{id}', [TbldetailresepController::class, 'delete']);
+
+    Route::post('/detail-resepForRelated', [TbldetailresepController::class, 'showRelatedProduct']);
 });
 
 Route::get('/jabatan', [App\Http\Controllers\TbljabatanController::class, 'index']);
