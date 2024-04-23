@@ -109,3 +109,5 @@ Route::group(['middleware' => 'auth:api-detail-resep'], function() {
 
     Route::post('/detail-resepForRelated', [TbldetailresepController::class, 'showRelatedProduct']);
 });
+
+Route::get('/jabatan', [App\Http\Controllers\TbljabatanController::class, 'index']);
