@@ -109,3 +109,5 @@ Route::group(['middleware' => 'auth:api-detail-resep'], function() {
     Route::put('/detail-resep/{id}', [TbldetailresepController::class, 'update']);
     Route::delete('/detail-resep/{id}', [TbldetailresepController::class, 'delete']);
 });
+
+Route::get('/jabatan', [App\Http\Controllers\TbljabatanController::class, 'index']);

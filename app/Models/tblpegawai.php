@@ -29,9 +29,9 @@ class tblpegawai extends Authenticatable
         "OTP",
     ];
 
-    protected $casts = [
-        'password' => 'hashed',
-    ];
+    // protected $casts = [
+    //     'password' => 'hashed',
+    // ];
 
     protected $guard = 'pegawai';
 

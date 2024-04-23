@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\tblpegawai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Ramsey\Uuid\Type\Integer;
 
 class TblpegawaiController extends Controller
 {
@@ -75,8 +76,15 @@ class TblpegawaiController extends Controller
     }
 
     public function update (request $request, $id) {
+        $tblPegawai = tblpegawai::find($id);
+        if(is_null($tblPegawai)) {
+            return response()->json([
+                'message' => 'Data Pegawai Tidak Ditemukan',
+                'status' => 404
+            ], 404);
+        }
+        
         $updatePegawai = $request->all();
-
         $validate = Validator::make($updatePegawai, [
             'ID_Jabatan' => 'required',
             'Nama_Pegawai' => 'required',
@@ -91,24 +99,15 @@ class TblpegawaiController extends Controller
                 'message' => $validate->errors(),
                 'status' => 404
             ], 404);
-        } else {
-            $updatePegawai['password'] = bcrypt($request->password);
-            $tblPegawai = tblpegawai::find($id);
+        } 
 
-            if (is_null($tblPegawai)) {
-                return response()->json([
-                    'message' => 'Data Pegawai Tidak Ditemukan',
-                    'status' => 404
-                ], 404);
-            } else {
-                $tblPegawai->update($updatePegawai);
-                return response()->json([
-                    'message' => 'Data Pegawai Berhasil Diupdate',
-                    'status' => 200,
-                    'data' => $tblPegawai
-                ], 200);
-            }
-        }
+        $tblPegawai->update($updatePegawai);
+        return response()->json([
+            'message' => 'Data Pegawai Berhasil Diupdate',
+            'status' => 200,
+            'data' => $tblPegawai
+        ], 200);
+        
     }
 
     public function delete($id) {
