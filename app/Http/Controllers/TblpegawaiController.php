@@ -57,8 +57,15 @@ class TblpegawaiController extends Controller
         }
     }
 
-    public function show(String $nama) {
-        $tblPegawai = tblpegawai::where('Nama_Pegawai', $nama)->first();
+    public function show($data) {
+        $tblPegawai = tblpegawai::where('Nama_Pegawai', $data)
+                        ->orWhere('Nama_Jabatan', $data)
+                        ->orWhere('email', $data)
+                        ->orWhere('Nomor_Rekening', $data)
+                        ->orWhere('Nomor_Telepon', $data)
+                        ->with('jabatan') 
+                        ->join('tbljabatan', 'tblpegawai.ID_Jabatan', '=', 'tbljabatan.ID_Jabatan') 
+                        ->get();
 
         if (is_null($tblPegawai)) {
             return response()->json([
