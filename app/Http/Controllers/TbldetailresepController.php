@@ -113,23 +113,22 @@ class TbldetailresepController extends Controller
         }
     }
 
-    public function showRelatedProduct(){
-        $namaBahan = request()->validate([
+    public function showRelatedProduct(Request $request){
+        $storeData = $request->all();
+
+        $validate = Validator::make($storeData, [
             'Nama_Bahan' => 'required'
         ]);
 
-        if(!$namaBahan){
-            return response()->json([
-                'message' => 'Nama Bahan Tidak Boleh Kosong',
-                'status' => 400
-            ], 400);
+        if($validate->fails()){
+            return response(['message' => $validate->errors()], 400);
         }
 
         $result = DB::table('tblbahanbaku as BK')
             ->join('tbldetailresep as DR', 'DR.ID_Bahan_Baku', '=', 'BK.ID_Bahan_Baku')
             ->join('tblresep as R', 'R.ID_Produk', '=', 'DR.ID_Produk')
             ->join('tblproduk as P', 'P.ID_Produk', '=', 'R.ID_Produk')
-            ->where('BK.Nama_Bahan', 'like', $namaBahan)
+            ->where('BK.Nama_Bahan', 'like', $storeData['Nama_Bahan'])
             ->orderBy('P.Nama_Produk')
             ->select('P.Nama_Produk', 'BK.Nama_Bahan', 'DR.Kuantitas', 'BK.Satuan')
             ->get();
