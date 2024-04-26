@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\tblproduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 
 class TblprodukController extends Controller
@@ -69,7 +70,7 @@ class TblprodukController extends Controller
             ]);
 
             return response([
-                'Add Content Success',
+                'message' => 'Add Content Success',
                 'data' => $produk
             ], 200);
         } catch (\Exception $e) {
@@ -198,12 +199,12 @@ class TblprodukController extends Controller
     {
         $latestProduk = tblproduk::latest('ID_Produk')->first();
         if ($latestProduk) {
-            $index = intval(substr($latestProduk->ID_Produk, 3)) + 1;
+            $index = intval(substr($latestProduk->ID_Produk, 2)) + 1;
         } else {
             $index = 1;
         }
 
-        $produkId = sprintf('%03d', $index);
+        $produkId = sprintf('%02d', $index);
 
         return $produkId;
     }
@@ -224,20 +225,25 @@ class TblprodukController extends Controller
             'Nama_Produk' => 'required',
             'Harga' => 'required',
             'Stok' => 'nullable',
-            'StokReady' => 'nullable',
-            'Gambar' => 'image:jpeg,png,jpg|max:2048'
+            'StokReady' => 'nullable'
         ]);
 
         if ($validate->fails()) {
             return response(['message' => $validate->errors()], 400);
         }
 
-        // upload gambar produk pada public/img disimpan path nya
-        // $uploadFolder = 'img';
-        // $gambarProduk = $request->file('Gambar');
+        if ($request->hasFile('Gambar')) {
+            $uploadFolder = 'img';
+            $gambarProduk = $request->file('Gambar');
 
-        // $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
-        // $gambarProdukPath = basename($gambarProdukFiles);
+            $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
+            $gambarProdukPath = basename($gambarProdukFiles);
+
+            Storage::disk('public')->delete('img/'.$produk->Gambar);
+
+            $updatedData['Gambar'] = $gambarProdukPath;
+            $produk->Gambar = $updatedData['Gambar'];
+        }
 
         // pengaturan nilai stok dan stokready
         $stok = $request->has('Stok') ? $request->Stok : 0;
@@ -248,7 +254,6 @@ class TblprodukController extends Controller
         $produk->Harga = $updatedData['Harga'];
         $produk->Stok = $stok;
         $produk->StokReady = $StokReady;
-        //$produk->Gambar = $gambarProdukPath;
 
         if ($produk->save()) {
             return response([
