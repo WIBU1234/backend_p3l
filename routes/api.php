@@ -91,7 +91,7 @@ Route::post('/forget-password', [App\Http\Controllers\TblcustomerController::cla
 Route::group(['middleware' => 'auth:api-pegawai'], function () {
     Route::get('/pegawai', [TblpegawaiController::class, 'index']);
     Route::post('/pegawai', [TblpegawaiController::class, 'store']);
-    Route::get('/pegawai/{nama}', [TblpegawaiController::class, 'show']);
+    Route::get('/pegawai/{data}', [TblpegawaiController::class, 'show']);
     Route::put('/pegawai/{id}', [TblpegawaiController::class, 'update']);
     Route::delete('/pegawai/{id}', [TblpegawaiController::class, 'delete']);
     Route::put('/update-gaji/{id}', [TblpegawaiController::class, 'updateGaji']);
@@ -103,9 +103,11 @@ Route::get('/detail-resep', [TbldetailresepController::class, 'index']);
 
 //Resep Kelvin (ON PROGRESS)
 Route::group(['middleware' => 'auth:api-detail-resep'], function() {
-    
-
     Route::get('/detail-resep/{id}', [TbldetailresepController::class, 'show']);
     Route::put('/detail-resep/{id}', [TbldetailresepController::class, 'update']);
     Route::delete('/detail-resep/{id}', [TbldetailresepController::class, 'delete']);
+
+    Route::post('/detail-resepForRelated', [TbldetailresepController::class, 'showRelatedProduct']);
 });
+
+Route::get('/jabatan', [App\Http\Controllers\TbljabatanController::class, 'index']);

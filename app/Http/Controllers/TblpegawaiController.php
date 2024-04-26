@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 class TblpegawaiController extends Controller
 {
     public function index() {
-        $tblPegawai = tblpegawai::all();
+        $tblPegawai = tblpegawai::with('jabatan')->get();
 
         if (count($tblPegawai) == 0) {
             return response()->json([
@@ -57,8 +57,15 @@ class TblpegawaiController extends Controller
         }
     }
 
-    public function show(String $nama) {
-        $tblPegawai = tblpegawai::where('Nama_Pegawai', $nama)->first();
+    public function show($data) {
+        $tblPegawai = tblpegawai::where('Nama_Pegawai', $data)
+                        ->orWhere('Nama_Jabatan', $data)
+                        ->orWhere('email', $data)
+                        ->orWhere('Nomor_Rekening', $data)
+                        ->orWhere('Nomor_Telepon', $data)
+                        ->with('jabatan') 
+                        ->join('tbljabatan', 'tblpegawai.ID_Jabatan', '=', 'tbljabatan.ID_Jabatan') 
+                        ->get();
 
         if (is_null($tblPegawai)) {
             return response()->json([
@@ -75,8 +82,15 @@ class TblpegawaiController extends Controller
     }
 
     public function update (request $request, $id) {
+        $tblPegawai = tblpegawai::find($id);
+        if(is_null($tblPegawai)) {
+            return response()->json([
+                'message' => 'Data Pegawai Tidak Ditemukan',
+                'status' => 404
+            ], 404);
+        }
+        
         $updatePegawai = $request->all();
-
         $validate = Validator::make($updatePegawai, [
             'ID_Jabatan' => 'required',
             'Nama_Pegawai' => 'required',
@@ -91,24 +105,15 @@ class TblpegawaiController extends Controller
                 'message' => $validate->errors(),
                 'status' => 404
             ], 404);
-        } else {
-            $updatePegawai['password'] = bcrypt($request->password);
-            $tblPegawai = tblpegawai::find($id);
+        } 
 
-            if (is_null($tblPegawai)) {
-                return response()->json([
-                    'message' => 'Data Pegawai Tidak Ditemukan',
-                    'status' => 404
-                ], 404);
-            } else {
-                $tblPegawai->update($updatePegawai);
-                return response()->json([
-                    'message' => 'Data Pegawai Berhasil Diupdate',
-                    'status' => 200,
-                    'data' => $tblPegawai
-                ], 200);
-            }
-        }
+        $tblPegawai->update($updatePegawai);
+        return response()->json([
+            'message' => 'Data Pegawai Berhasil Diupdate',
+            'status' => 200,
+            'data' => $tblPegawai
+        ], 200);
+        
     }
 
     public function delete($id) {

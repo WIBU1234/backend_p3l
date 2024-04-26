@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\tbldetailresep;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class TbldetailresepController extends Controller
 {
@@ -110,5 +111,40 @@ class TbldetailresepController extends Controller
                 'status' => 200
             ], 200);
         }
+    }
+
+    public function showRelatedProduct(){
+        $namaBahan = request()->validate([
+            'Nama_Bahan' => 'required'
+        ]);
+
+        if(!$namaBahan){
+            return response()->json([
+                'message' => 'Nama Bahan Tidak Boleh Kosong',
+                'status' => 400
+            ], 400);
+        }
+
+        $result = DB::table('tblbahanbaku as BK')
+            ->join('tbldetailresep as DR', 'DR.ID_Bahan_Baku', '=', 'BK.ID_Bahan_Baku')
+            ->join('tblresep as R', 'R.ID_Produk', '=', 'DR.ID_Produk')
+            ->join('tblproduk as P', 'P.ID_Produk', '=', 'R.ID_Produk')
+            ->where('BK.Nama_Bahan', 'like', $namaBahan)
+            ->orderBy('P.Nama_Produk')
+            ->select('P.Nama_Produk', 'BK.Nama_Bahan', 'DR.Kuantitas', 'BK.Satuan')
+            ->get();
+
+        if(count($result) == 0){
+            return response()->json([
+                'message' => 'Detail Resep Tidak Ditemukan',
+                'status' => 404
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Detail Resep Berhasil Ditemukan',
+            'status' => 200,
+            'data' => $result
+        ], 200);
     }
 }
