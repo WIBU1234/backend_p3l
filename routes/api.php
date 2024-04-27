@@ -86,6 +86,8 @@ Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::cl
 Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
 
 Route::post('/forget-password', [App\Http\Controllers\TblcustomerController::class, 'forgetPassword']);
+Route::post('/checkCredentialToken', [App\Http\Controllers\TblcustomerController::class, 'checkingCredentialToken']);
+Route::put('/reset-password', [App\Http\Controllers\TblcustomerController::class, 'resetPassword']);
 
 // Pegawai Kelvin (ON PROGRESS)
 Route::group(['middleware' => 'auth:api-pegawai'], function () {

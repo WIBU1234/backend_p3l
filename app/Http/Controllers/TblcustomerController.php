@@ -35,7 +35,7 @@ class TblcustomerController extends Controller
             $resetCreated = PasswordReset::where('email', $request->email)->delete();
 
             $token = Str::random(40);
-            $domain = URL::to('/');
+            $domain = URL::to('http://localhost:5173');
             $url = $domain . '/reset-password?token='.$token;
 
             $data['url'] = $url;
@@ -82,6 +82,83 @@ class TblcustomerController extends Controller
                 'data' => $e->getMessage() // change this to get the actual error message
             ], 400);
         }
+    }
 
+    public function checkingCredentialToken(Request $request)
+    {
+        try{
+            $request->validate([
+                'token' => 'required'
+            ]);
+
+            $user = PasswordReset::where('token', $request->token)->get();
+
+            if ($user->isEmpty()) {
+                return response()->json([
+                    'message' => 'Token invalid',
+                    'data' => 'Token invalid'
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Token valid',
+                'data' => 'Token valid'
+            ], 200);
+
+        }
+        catch(\Exception $e){
+            Log::error('Error in checkingCredentialToken:', [
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'message' => 'Gagal',
+                'data' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function resetPassword(Request $request)
+    {
+        try{
+            $request->validate([
+                'token' => 'required',
+                'password' => 'required',
+                'passwordConfirm' => 'required|same:password'
+            ]);
+
+            $user = PasswordReset::where('token', $request->token)->get();
+
+            if ($user->isEmpty()) {
+                return response()->json([
+                    'message' => 'Token invalid',
+                    'data' => 'Token invalid'
+                ], 404);
+            }
+
+            $user = tblcustomer::where('email', $user[0]->email)->get();
+
+            if ($user->isEmpty()) {
+                return response()->json([
+                    'message' => 'Gk ada emailnya',
+                ], 404);
+            }
+
+            $user[0]->password = bcrypt($request->password);
+            $user[0]->save();
+
+            return response()->json([
+                'message' => 'Password berhasil direset'
+            ], 200);
+
+        }
+        catch(\Exception $e){
+            Log::error('Error in resetPassword:', [
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'message' => 'Gagal',
+                'data' => $e->getMessage()
+            ], 400);
+        }
     }
 }
