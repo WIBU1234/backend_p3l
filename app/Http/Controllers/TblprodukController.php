@@ -30,6 +30,7 @@ class TblprodukController extends Controller
     public function storeResep(Request $request)
     {
         try {
+            $initID = 'AK';
             $storeData = $request->all();
 
             $validate = Validator::make($storeData, [
@@ -57,7 +58,7 @@ class TblprodukController extends Controller
             $StokReady = $request->has('StokReady') ? $request->StokReady : 0;
 
             // Pengaturan ID resep
-            $id = 'AK' . $this->generateIDProduk();
+            $id = $initID . $this->generateIDProduk($initID);
 
             $produk = tblproduk::create([
                 'ID_Produk' => $id,
@@ -86,6 +87,7 @@ class TblprodukController extends Controller
     public function storeTitipan(Request $request)
     {
         try {
+            $initID = 'PN';
             $storeData = $request->all();
 
             $validate = Validator::make($storeData, [
@@ -113,7 +115,7 @@ class TblprodukController extends Controller
             $StokReady = $request->has('StokReady') ? $request->StokReady : 0;
 
             // Pengaturan ID resep
-            $id = 'PN' . $this->generateIDProduk();
+            $id = $initID . $this->generateIDProduk($initID);
 
             $produk = tblproduk::create([
                 'ID_Produk' => $id,
@@ -142,6 +144,7 @@ class TblprodukController extends Controller
     public function storeHampers(Request $request)
     {
         try {
+            $initID = 'HM';
             $storeData = $request->all();
 
             $validate = Validator::make($storeData, [
@@ -169,7 +172,7 @@ class TblprodukController extends Controller
             $StokReady = $request->has('StokReady') ? $request->StokReady : 0;
 
             // Pengaturan ID resep
-            $id = 'HM' . $this->generateIDProduk();
+            $id = $initID . $this->generateIDProduk($initID);
 
             $produk = tblproduk::create([
                 'ID_Produk' => $id,
@@ -195,18 +198,23 @@ class TblprodukController extends Controller
         }
     }
 
-    private function generateIDProduk()
+    private function generateIDProduk(string $initID)
     {
         $latestProduk = tblproduk::latest('ID_Produk')->first();
         if ($latestProduk) {
-            $index = intval(substr($latestProduk->ID_Produk, 2)) + 1;
+            $latestIndex = intval(substr($latestProduk->ID_Produk, 2));
+            $index = $latestIndex + 1;
         } else {
             $index = 1;
         }
 
-        $produkId = sprintf('%02d', $index);
+        do {
+            $id = sprintf('%02d', $index);
+            $existingProduk = tblproduk::where('ID_Produk', $initID . $id)->first();
+            $index++;
+        } while ($existingProduk);
 
-        return $produkId;
+        return $id;
     }
 
     public function update(Request $request, string $id)
