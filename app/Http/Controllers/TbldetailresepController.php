@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class TbldetailresepController extends Controller
 {
     public function index() {
-        $tblDetailResep = tbldetailresep::all();
+        $tblDetailResep = tbldetailresep::with('tblresep','tblbahanbaku', 'tblproduk')->get();
 
         if(count($tblDetailResep) == 0) {
             return response()->json([
@@ -53,8 +53,14 @@ class TbldetailresepController extends Controller
         ], 200);
     }
 
-    public function show(string $id) {
-        $tblDetailResep = tbldetailresep::find($id);
+    public function show($id) {
+        $tblDetailResep = tbldetailresep::where('tblproduk.Nama_Produk', 'like', '%' . $id . '%')
+            ->orWhere('tblbahanbaku.Nama_Bahan', 'like', '%' . $id . '%')
+            ->join('tblresep', 'tblresep.ID_Produk', '=', 'tbldetailresep.ID_Produk')
+            ->join('tblproduk', 'tblproduk.ID_Produk', '=', 'tblresep.ID_Produk')
+            ->join('tblbahanbaku', 'tblbahanbaku.ID_Bahan_Baku', '=', 'tbldetailresep.ID_Bahan_Baku')
+            ->with('tblresep','tblbahanbaku', 'tblproduk')
+            ->get();
 
         if(is_null($tblDetailResep)) {
             return response()->json([
