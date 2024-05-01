@@ -103,7 +103,7 @@ Route::group(['middleware' => 'auth:api-detail-resep'], function() {
     Route::post('/detail-resep', [TbldetailresepController::class, 'store']);
     Route::get('/detail-resep', [TbldetailresepController::class, 'index']);
     Route::get('/detail-resep/{id}', [TbldetailresepController::class, 'show']);
-    Route::put('/detail-resep/{id}', [TbldetailresepController::class, 'update']);
+    Route::put('/detail-resep/{idP}/{idBB}', [TbldetailresepController::class, 'update']);
     Route::delete('/detail-resep/{id}', [TbldetailresepController::class, 'delete']);
 
     Route::post('/detail-resepForRelated', [TbldetailresepController::class, 'showRelatedProduct']);
