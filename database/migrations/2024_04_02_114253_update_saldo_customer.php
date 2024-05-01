@@ -14,7 +14,7 @@ return new class extends Migration
     {
         DB::unprepared('
         CREATE TRIGGER update_saldo_customer 
-        BEFORE INSERT ON tblHistorySaldo
+        AFTER INSERT ON tblHistorySaldo
         FOR EACH ROW
         BEGIN
         UPDATE tblCustomer
