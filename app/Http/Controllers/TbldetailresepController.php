@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class TbldetailresepController extends Controller
 {
     public function index() {
-        $tblDetailResep = tbldetailresep::all();
+        $tblDetailResep = tbldetailresep::with('tblresep','tblbahanbaku', 'tblproduk')->get();
 
         if(count($tblDetailResep) == 0) {
             return response()->json([
@@ -53,8 +53,14 @@ class TbldetailresepController extends Controller
         ], 200);
     }
 
-    public function show(string $id) {
-        $tblDetailResep = tbldetailresep::find($id);
+    public function show($id) {
+        $tblDetailResep = tbldetailresep::where('tblproduk.Nama_Produk', 'like', '%' . $id . '%')
+            ->orWhere('tblbahanbaku.Nama_Bahan', 'like', '%' . $id . '%')
+            ->join('tblresep', 'tblresep.ID_Produk', '=', 'tbldetailresep.ID_Produk')
+            ->join('tblproduk', 'tblproduk.ID_Produk', '=', 'tblresep.ID_Produk')
+            ->join('tblbahanbaku', 'tblbahanbaku.ID_Bahan_Baku', '=', 'tbldetailresep.ID_Bahan_Baku')
+            ->with('tblresep','tblbahanbaku', 'tblproduk')
+            ->get();
 
         if(is_null($tblDetailResep)) {
             return response()->json([
@@ -70,48 +76,52 @@ class TbldetailresepController extends Controller
         }
     }
 
-    public function update(request $request, string $id) {
+    public function update(Request $request, string $idP, int $idBB) {
         $simpanDetailResep = $request->all();
-        
-        foreach ($simpanDetailResep as $data) {
-            $validateData = $this->validateItem($data);
-
-            $tblDetailResep = tbldetailresep::where('ID_Produk', $id)->first();
-            if (is_null($tblDetailResep)) {
-                return response()->json([
-                    'message' => 'Detail Resep Tidak Ditemukan',
-                    'status' => 404
-                ], 404);
-            } else {
-                $tblDetailResep->update($validateData);
-            }
-        }
-
-
-
-        return response()->json([
-            'message' => 'Detail Resep Berhasil Diupdate',
-            'status' => 200,
-            'data' => $tblDetailResep
-        ], 200);
-    }
-
-    public function destroy(string $id) {
-        $tblDetailResep = tbldetailresep::where('ID_Produk', $id)->get();
-
+    
+        $validateData = $this->validateItem($simpanDetailResep);
+    
+        $tblDetailResep = DB::table('tbldetailresep')
+                            ->where('ID_Produk', $idP)
+                            ->where('ID_Bahan_Baku', $idBB)
+                            ->first();
+    
         if (is_null($tblDetailResep)) {
             return response()->json([
                 'message' => 'Detail Resep Tidak Ditemukan',
                 'status' => 404
             ], 404);
         } else {
-            $tblDetailResep->delete();
+        $updateDetailResep = DB::table('tbldetailresep')
+                ->where('ID_Produk', $idP)
+                ->where('ID_Bahan_Baku', $idBB)
+                ->update($validateData);
+        }
+    
+        return response()->json([
+            'message' => 'Detail Resep Berhasil Diupdate',
+            'status' => 200,
+            'data' => $updateDetailResep
+        ], 200);
+    }
+
+    public function delete(string $id) {
+        $tblDetailResep = tbldetailresep::where('ID_Produk', $id)->delete();
+    
+        if ($tblDetailResep === 0) {
+            return response()->json([
+                'message' => 'Detail Resep Tidak Ditemukan',
+                'data' => $tblDetailResep,
+                'status' => 404
+            ], 404);
+        } else {
             return response()->json([
                 'message' => 'Detail Resep Berhasil Dihapus',
                 'status' => 200
             ], 200);
         }
     }
+    
 
     public function showRelatedProduct(Request $request){
         $storeData = $request->all();

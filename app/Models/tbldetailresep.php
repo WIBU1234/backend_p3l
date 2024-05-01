@@ -10,6 +10,8 @@ class tbldetailresep extends Model
     use HasFactory;
     public $timestamps = false;
     protected $table = 'tbldetailresep';
+    protected $primaryKey = null;
+    public $incrementing = false;
     protected $fillable = [
         "ID_Bahan_Baku",
         "ID_Produk",
@@ -18,6 +20,10 @@ class tbldetailresep extends Model
 
     public function tblresep() {
         return $this->belongsTo(tblresep::class, 'ID_Produk', 'ID_Produk');
+    }
+
+    public function tblproduk() {
+        return $this->belongsTo(tblproduk::class,'ID_Produk','ID_Produk');
     }
 
     public function tblbahanbaku() {
