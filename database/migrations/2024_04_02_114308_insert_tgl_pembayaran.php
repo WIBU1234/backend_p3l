@@ -14,7 +14,7 @@ return new class extends Migration
     {
         DB::unprepared('
         CREATE TRIGGER insert_tgl_pembayaran
-        AFTER INSERT ON tblTransaksi
+        BEFORE INSERT ON tblTransaksi
         FOR EACH ROW
         BEGIN
         DECLARE tanggal_wajib_bayar DATETIME;
