@@ -15,6 +15,9 @@ return new class extends Migration
             $table->integer('ID_Bahan_Baku')->nullable();
             $table->string('ID_Produk', 255)->nullable();
             $table->integer('Kuantitas')->nullable();
+
+            $table->foreign('ID_Bahan_Baku')->references('ID_Bahan_Baku')->on('tblbahanbaku')->onDelete('cascade');
+            $table->foreign('ID_Produk')->references('ID_Produk')->on('tblresep')->onDelete('cascade');
         });
     }
 
