@@ -17,8 +17,7 @@ class TblcustomerController extends Controller
 {
     use Notifiable, CanResetPassword;
 
-    public function forgetPassword(Request $request)
-    {
+    public function forgetPassword(Request $request){
         try{
             $request->validate([
                 'email' => 'required|email',
@@ -39,7 +38,6 @@ class TblcustomerController extends Controller
             $url = $domain . '/reset-password?token='.$token;
 
             $data['url'] = $url;
-            // $data['token'] = $token;
             $data['email'] = $request->email;
             $data['title'] = 'Reset Password';
             $data['body'] = 'Silahkan klik link dibawah ini untuk mereset password anda';
@@ -47,16 +45,6 @@ class TblcustomerController extends Controller
             Mail::send('forgotPasswordMail', ['data'=>$data], function($message) use ($data){
                 $message->to($data['email'])->subject($data['title']);
             });
-
-            // try {
-            //     Mail::send('forgotPasswordMail', ['data'=>$data], function($message) use ($data){
-            //         $message->to($data['email'])->subject($data['title']);
-            //     });
-            // } catch (\Exception $e) {
-            //     Log::error('Mail sending failed:', [
-            //         'message' => $e->getMessage(),
-            //     ]);
-            // }
 
             $datetime = Carbon::now()->format('Y-m-d H:i:s');
             PasswordReset::updateOrCreate(
@@ -79,13 +67,12 @@ class TblcustomerController extends Controller
             ]);
             return response()->json([
                 'message' => 'Gagal',
-                'data' => $e->getMessage() // change this to get the actual error message
+                'data' => $e->getMessage()
             ], 400);
         }
     }
 
-    public function checkingCredentialToken(Request $request)
-    {
+    public function checkingCredentialToken(Request $request){
         try{
             $request->validate([
                 'token' => 'required'
@@ -117,8 +104,7 @@ class TblcustomerController extends Controller
         }
     }
 
-    public function resetPassword(Request $request)
-    {
+    public function resetPassword(Request $request){
         try{
             $request->validate([
                 'token' => 'required',
@@ -149,7 +135,7 @@ class TblcustomerController extends Controller
             return response()->json([
                 'message' => 'Password berhasil direset'
             ], 200);
-
+            
         }
         catch(\Exception $e){
             Log::error('Error in resetPassword:', [
@@ -158,6 +144,23 @@ class TblcustomerController extends Controller
             return response()->json([
                 'message' => 'Gagal',
                 'data' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function getAllCustomer(){
+        try{
+            $customer = tblcustomer::all();
+
+            return response()->json([
+                'message' => 'Get All Customer Success',
+                'data' => $customer,
+            ], 200);
+        }
+        catch(\Exception $e){
+            return response()->json([
+                'message' => 'Get All Customer Failed',
+                'data' => $e->getMessage(),
             ], 400);
         }
     }

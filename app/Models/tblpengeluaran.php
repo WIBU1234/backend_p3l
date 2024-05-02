@@ -8,10 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class tblpengeluaran extends Model
 {
     use HasFactory;
+    public $timestamps = false;
     protected $table = 'tblPengeluaran';
     protected $fillable = [
         "Nama",
         "Harga",
         "Tanggal",
     ];
+
+    public function getKey()
+    {
+        return null;
+    }
 }

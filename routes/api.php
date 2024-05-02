@@ -71,7 +71,11 @@ Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
 
 Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     //Rute yang cuma bisa diakses MO
-
+    Route::get('/pengeluaran', [App\Http\Controllers\TblpengeluaranController::class, 'getAllDataPengeluaran']);
+    Route::post('/pengeluaran', [App\Http\Controllers\TblpengeluaranController::class, 'createPengeluaran']);
+    Route::put('/pengeluaran', [App\Http\Controllers\TblpengeluaranController::class, 'updatePengeluaran']);
+    Route::delete('/pengeluaran', [App\Http\Controllers\TblpengeluaranController::class, 'deletePengeluaran']);
+    Route::post('/pengeluaranSearch', [App\Http\Controllers\TblpengeluaranController::class, 'searchPengeluaran']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
