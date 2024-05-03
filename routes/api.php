@@ -65,7 +65,11 @@ Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
 
 Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     //Rute yang cuma bisa diakses MO
-
+    Route::get('/transaksi-bahan', [App\Http\Controllers\TbltransaksibahanbakuController::class, 'index']);
+    Route::post('/transaksi-bahan', [App\Http\Controllers\TbltransaksibahanbakuController::class, 'store']);
+    Route::get('/transaksi-bahan/{id}', [App\Http\Controllers\TbltransaksibahanbakuController::class, 'show']);
+    Route::put('/transaksi-bahan/{id}', [App\Http\Controllers\TbltransaksibahanbakuController::class, 'update']);
+    Route::delete('/transaksi-bahan/{id}', [App\Http\Controllers\TbltransaksibahanbakuController::class, 'destroy']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {

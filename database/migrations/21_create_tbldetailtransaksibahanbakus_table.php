@@ -16,6 +16,9 @@ return new class extends Migration
             $table->integer('ID_transaksi_Baku')->nullable();
             $table->integer('Kuantitas')->nullable();
             $table->integer('Sub_Total')->nullable();
+
+            $table->foreign('ID_Bahan_Baku')->references('ID_Bahan_Baku')->on('tblbahanbaku')->onDelete('cascade');
+            $table->foreign('ID_transaksi_Baku')->references('ID_Transaksi_Baku')->on('tbltransaksibahanbaku')->onDelete('cascade');
         });
     }
 

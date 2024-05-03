@@ -84,7 +84,7 @@ class AuthController extends Controller
             return response(['message' => $validate->errors()], 400);
         }
 
-        //$registrationData['Password'] = bcrypt($request->Password);
+        //$registrationData['password'] = bcrypt($request->Password);
         $registrationData['Gaji'] = 0;
         $registrationData['Bonus'] = 0;
 

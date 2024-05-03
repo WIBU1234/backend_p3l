@@ -43,7 +43,9 @@ class TblprodukController extends Controller
             ]);
 
             if($validate->fails()){
-                return response(['message' => $validate->errors()], 400);
+                return response([
+                    'message' => $validate->errors()
+                ], 400);
             }
 
             // upload gambar produk pada public/img disimpan path nya
