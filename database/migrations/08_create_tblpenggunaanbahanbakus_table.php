@@ -15,6 +15,8 @@ return new class extends Migration
             $table->integer('ID_Bahan_Baku')->nullable();
             $table->integer('Kuantitas')->nullable();
             $table->date('Tanggal')->nullable();
+
+            $table->foreign('ID_Bahan_Baku')->references('ID_Bahan_Baku')->on('tblbahanbaku');
         });
     }
 

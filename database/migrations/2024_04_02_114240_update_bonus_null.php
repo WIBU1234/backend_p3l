@@ -14,7 +14,7 @@ return new class extends Migration
     {
         DB::unprepared('
         CREATE TRIGGER update_bonus_null
-        BEFORE UPDATE ON tblPegawai
+        AFTER UPDATE ON tblPegawai
         FOR EACH ROW
         BEGIN
             DECLARE first_each_month DATE;

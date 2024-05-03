@@ -57,6 +57,12 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::get('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'show']);
     Route::put('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'update']);
     Route::delete('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'destroy']);
+
+    Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
+    Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
+    Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
+    Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
+    Route::post('/productForSpesificPenitip', [App\Http\Controllers\TblpenitipController::class, 'getAllProductByPenitip']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
@@ -84,12 +90,9 @@ Route::post('/createBahanBaku', [App\Http\Controllers\TblbahanbakuController::cl
 Route::put('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'updateBahanBaku']);
 Route::delete('/deleteBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'deleteBahanBaku']);
 
-Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
-Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
-Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
-Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
-
 Route::post('/forget-password', [App\Http\Controllers\TblcustomerController::class, 'forgetPassword']);
+Route::post('/checkCredentialToken', [App\Http\Controllers\TblcustomerController::class, 'checkingCredentialToken']);
+Route::put('/reset-password', [App\Http\Controllers\TblcustomerController::class, 'resetPassword']);
 
 // Pegawai Kelvin (ON PROGRESS)
 Route::group(['middleware' => 'auth:api-pegawai'], function () {
@@ -102,13 +105,12 @@ Route::group(['middleware' => 'auth:api-pegawai'], function () {
     Route::put('/update-bonus/{id}', [TblpegawaiController::class, 'updateBonus']);
 });
 
-Route::post('/detail-resep', [TbldetailresepController::class, 'store']);
-Route::get('/detail-resep', [TbldetailresepController::class, 'index']);
-
 //Resep Kelvin (ON PROGRESS)
 Route::group(['middleware' => 'auth:api-detail-resep'], function() {
+    Route::post('/detail-resep', [TbldetailresepController::class, 'store']);
+    Route::get('/detail-resep', [TbldetailresepController::class, 'index']);
     Route::get('/detail-resep/{id}', [TbldetailresepController::class, 'show']);
-    Route::put('/detail-resep/{id}', [TbldetailresepController::class, 'update']);
+    Route::put('/detail-resep/{idP}/{idBB}', [TbldetailresepController::class, 'update']);
     Route::delete('/detail-resep/{id}', [TbldetailresepController::class, 'delete']);
 
     Route::post('/detail-resepForRelated', [TbldetailresepController::class, 'showRelatedProduct']);

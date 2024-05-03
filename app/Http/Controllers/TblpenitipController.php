@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use App\Models\tblpenitip;
 
 class TblpenitipController extends Controller
@@ -111,6 +112,38 @@ class TblpenitipController extends Controller
         }catch(\Exception $e){
             return response()->json([
                 'message' => 'Delete Penitip Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function getAllProductByPenitip(Request $request){
+        try{
+            $storeData = $request->all();
+
+            $validate = Validator::make($storeData, [
+                'ID_Penitip' => 'required'
+            ]);
+    
+            if($validate->fails()){
+                return response(['message' => $validate->errors()], 400);
+            }
+
+            $produk = DB::table('tblpenitip as P')
+                ->join('tbltitipan as T', 'P.ID_Penitip', '=', 'T.ID_Penitip')
+                ->join('tblproduk as PR', 'T.ID_Produk', '=', 'PR.ID_Produk')
+                ->where('P.ID_Penitip', $storeData['ID_Penitip'])
+                ->select('PR.Nama_Produk', 'T.Harga_Beli', 'PR.Harga', 'PR.Stok')
+                ->get();
+            
+            return response()->json([
+                'message' => 'Fetch Produk by Penitip Success',
+                'data' => $produk,
+            ], 200);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Fetch Produk by Penitip Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }
