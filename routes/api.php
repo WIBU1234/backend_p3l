@@ -63,6 +63,10 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
     Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
     Route::post('/productForSpesificPenitip', [App\Http\Controllers\TblpenitipController::class, 'getAllProductByPenitip']);
+
+    Route::get('/customer', [App\Http\Controllers\TblcustomerController::class, 'getAllCustomer']);
+    Route::get('/customerHistory/{id}', [App\Http\Controllers\TblcustomerController::class, 'getCustomerHistory']);
+    Route::get('/customerAddress/{id}', [App\Http\Controllers\TblalamatController::class, 'getSpesificAddressByIdUser']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {

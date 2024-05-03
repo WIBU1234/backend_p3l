@@ -33,4 +33,8 @@ class tbltransaksi extends Model
     public function tblalamat() {
         return $this->belongsTo(tblalamat::class, 'ID_Alamat', 'ID_Alamat');
     }
+
+    public function tbldetailtransaksi() {
+        return $this->hasMany(tbldetailtransaksi::class, 'ID_Transaksi', 'ID_Transaksi');
+    }
 }

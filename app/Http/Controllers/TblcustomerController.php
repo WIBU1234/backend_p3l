@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\tblcustomer;
+use App\Models\tblhampers;
 use App\Models\PasswordReset;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
@@ -160,6 +161,58 @@ class TblcustomerController extends Controller
         catch(\Exception $e){
             return response()->json([
                 'message' => 'Get All Customer Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function getCustomerHistory($id){
+        try{
+            $customer = tblcustomer::find($id);
+
+            if(!$customer){
+                return response()->json([
+                    'message' => 'Customer Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
+            $history = $customer->with('tbltransaksi.tbldetailtransaksi.tblproduk')
+                ->get()
+                ->where('ID_Customer', $id)
+                ->flatMap(function ($transaksi) {
+                    return $transaksi->tbltransaksi->map(function ($detail) {
+                        return $detail->tbldetailtransaksi->map(function ($produk) use ($detail) {
+                            return [
+                                'ID_Transaksi' => $produk->ID_Transaksi,
+                                'ID_Produk' => $produk->ID_Produk,
+                                'Nama_Produk' => $produk->tblproduk->Nama_Produk,
+                                'Harga' => $produk->tblproduk->Harga,
+                                'Status' => $detail->Status,
+                            ];
+                        });
+                    });
+                })
+                ->collapse()
+                ->filter(function ($item) {
+                    return $item['Status'] == 'Selesai';
+                });
+
+            if($history->isEmpty()){
+                return response()->json([
+                    'message' => 'Customer History Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Get Customer History Success',
+                'data' => $history,
+            ], 200);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Get Customer History Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }

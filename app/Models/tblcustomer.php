@@ -35,4 +35,8 @@ class tblcustomer extends Authenticatable
     public function getRole(){
         return 'Customer';
     }
+
+    public function tbltransaksi(){
+        return $this->hasMany(tbltransaksi::class, 'ID_Customer');
+    }
 }
