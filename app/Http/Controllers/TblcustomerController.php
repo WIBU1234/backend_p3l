@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\tblcustomer;
-use App\Models\tblhampers;
 use App\Models\PasswordReset;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
@@ -177,28 +176,35 @@ class TblcustomerController extends Controller
                 ], 404);
             }
 
-            $history = $customer->with('tbltransaksi.tbldetailtransaksi.tblproduk')
-                ->get()
-                ->where('ID_Customer', $id)
-                ->flatMap(function ($transaksi) {
-                    return $transaksi->tbltransaksi->map(function ($detail) {
-                        return $detail->tbldetailtransaksi->map(function ($produk) use ($detail) {
-                            return [
-                                'ID_Transaksi' => $produk->ID_Transaksi,
-                                'ID_Produk' => $produk->ID_Produk,
-                                'Nama_Produk' => $produk->tblproduk->Nama_Produk,
-                                'Harga' => $produk->tblproduk->Harga,
-                                'Status' => $detail->Status,
-                            ];
-                        });
-                    });
-                })
-                ->collapse()
-                ->filter(function ($item) {
-                    return $item['Status'] == 'Selesai';
-                });
+            // $history = $customer->with('tbltransaksi.tbldetailtransaksi.tblproduk')
+            //     ->get()
+            //     ->where('ID_Customer', $id)
+            //     ->flatMap(function ($transaksi) {
+            //         return $transaksi->tbltransaksi->map(function ($detail) {
+            //             return $detail->tbldetailtransaksi->map(function ($produk) use ($detail) {
+            //                 return [
+            //                     'ID_Transaksi' => $produk->ID_Transaksi,
+            //                     'ID_Produk' => $produk->ID_Produk,
+            //                     'Nama_Produk' => $produk->tblproduk->Nama_Produk,
+            //                     'Harga' => $produk->tblproduk->Harga,
+            //                     'Status' => $detail->Status,
+            //                 ];
+            //             });
+            //         });
+            //     })
+            //     ->collapse()
+            //     ->filter(function ($item) {
+            //         return $item['Status'] == 'Selesai';
+            //     });
 
-            if($history->isEmpty()){
+            $history = $customer->with(['tbltransaksi' => function ($query) {
+                $query->where('Status', 'Selesai')
+                ->with('tbldetailtransaksi.tblproduk');
+            }])
+                ->where('ID_Customer', $id)
+                ->first();
+
+            if(is_null($history)){
                 return response()->json([
                     'message' => 'Customer History Not Found',
                     'data' => '404',

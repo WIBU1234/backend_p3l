@@ -39,4 +39,8 @@ class tblcustomer extends Authenticatable
     public function tbltransaksi(){
         return $this->hasMany(tbltransaksi::class, 'ID_Customer');
     }
+
+    public function tblalamat(){
+        return $this->hasMany(tblalamat::class, 'ID_Customer');
+    }
 }

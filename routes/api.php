@@ -67,6 +67,7 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::get('/customer', [App\Http\Controllers\TblcustomerController::class, 'getAllCustomer']);
     Route::get('/customerHistory/{id}', [App\Http\Controllers\TblcustomerController::class, 'getCustomerHistory']);
     Route::get('/customerAddress/{id}', [App\Http\Controllers\TblalamatController::class, 'getSpesificAddressByIdUser']);
+    Route::get('/customerTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiToProduk']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
