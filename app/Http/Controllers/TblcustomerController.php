@@ -165,6 +165,29 @@ class TblcustomerController extends Controller
         }
     }
 
+    public function searchGetCustomer(Request $request){
+        try{
+            $request->validate([
+                'search' => 'required',
+            ]);
+
+            $customer = tblcustomer::where('Nama_Customer', 'like', '%'.$request->search.'%')
+                ->orWhere('email', 'like', '%'.$request->search.'%')
+                ->get();
+
+            return response()->json([
+                'message' => 'Search Customer Success',
+                'data' => $customer,
+            ], 200);
+        }
+        catch(\Exception $e){
+            return response()->json([
+                'message' => 'Search Customer Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     public function getCustomerHistory($id){
         try{
             $customer = tblcustomer::find($id);
