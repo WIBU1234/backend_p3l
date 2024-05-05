@@ -119,4 +119,6 @@ Route::get('/jabatan', [App\Http\Controllers\TbljabatanController::class, 'index
 
 Route::group(['middleware'=>'auth:api-customer'], function() {
     Route::get('/customer', [App\Http\Controllers\TblcustomerController::class, 'index']);
+    Route::put('/customer/{id}', [App\Http\Controllers\TblcustomerController::class, 'update']);
+    Route::post('/customer', [App\Http\Controllers\TblcustomerController::class, 'updateProfile']);
 });
