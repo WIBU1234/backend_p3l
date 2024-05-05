@@ -102,6 +102,7 @@ Route::group(['middleware' => 'auth:api-pegawai'], function () {
     Route::delete('/pegawai/{id}', [TblpegawaiController::class, 'delete']);
     Route::put('/update-gaji/{id}', [TblpegawaiController::class, 'updateGaji']);
     Route::put('/update-bonus/{id}', [TblpegawaiController::class, 'updateBonus']);
+    Route::put('/reset-password/{id}', [TblpegawaiController::class, 'resetPassword']);
 });
 
 //Resep Kelvin (ON PROGRESS)

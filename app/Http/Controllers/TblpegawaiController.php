@@ -180,4 +180,33 @@ class TblpegawaiController extends Controller
             ], 200);
         }
     }
+
+    public function resetPassword (Request $request, $id) {
+        $tblPegawai = tblpegawai:: find($id);
+
+        if (is_null($tblPegawai)) {
+            return response()->json([
+                'message' => 'Data Pegawai Tidak Ditemukan',
+                'status' => 404
+            ], 404);
+        }
+
+        $updatePassword = request()->all();
+        $updatePassword['password'] = bcrypt($tblPegawai->email);
+
+        try {
+            $tblPegawai->update($updatePassword);
+            return response()->json([
+                'message' => 'Password Berhasil Direset',
+                'status' => 200,
+                'data' => $tblPegawai
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Password Gagal Direset',
+                'status' => 404
+            ], 404);
+        }
+        
+    }
 }
