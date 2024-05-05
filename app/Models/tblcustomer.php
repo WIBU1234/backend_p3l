@@ -11,7 +11,7 @@ class tblcustomer extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens;
     public $timestamps = false;
-    protected $table = 'tblCustomer';
+    protected $table = 'tblcustomer';
     protected $primaryKey = 'ID_Customer';
     protected $fillable = [
         "Nama_Customer",
