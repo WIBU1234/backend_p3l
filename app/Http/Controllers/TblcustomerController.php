@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class TblcustomerController extends Controller
 {
@@ -159,6 +161,77 @@ class TblcustomerController extends Controller
                 'message' => 'Gagal',
                 'data' => $e->getMessage()
             ], 400);
+        }
+    }
+
+    public function confirmEmail(Request $request) {
+        $user = tblcustomer::where('email', $request->email)->get();
+
+        if ($user->isEmpty()) {
+            return response()->json([
+                'message' => 'User Not Found',
+            ], 404);
+        }
+
+        $domain = URL::to('http://localhost:5173');
+        $url = $domain . '/';
+
+        $data['url'] = $url;
+        $data['email'] = $request->email;
+        $data['title'] = 'Konfirmasi Email';
+
+        Mail::send('confirmationEmailRegister', ['data'=>$data], function($message) use ($data){
+            $message->to($data['email'])->subject($data['title']);
+        });
+
+        return response()->json([
+            'message' => 'Berhasil Mengirimkan Email Konfirmasi'
+        ], 200);
+    }
+
+    public function index() {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'User Not Found',
+            ], 404);
+        } else {
+            return response()->json([
+                'message' => 'User Found',
+                'data' => $user
+            ], 200);
+        }
+    }
+
+    public function update(request $request) {
+        $user = Auth::user();
+
+        try {
+            $tblcustomer = tblcustomer::find($user->id);
+            $updatecustomer = $request->all();
+            $validate = Validator::make($updatecustomer, [
+                'Nama_Customer' => 'required',
+                'email' => 'required',
+                'Nomor_Telepon' => 'required'
+            ]);
+
+            if ($validate->fails()) {
+                return response([
+                    'message' => $validate->errors(),
+                ], 404);
+            }
+
+            $tblcustomer->update($updatecustomer);
+
+            return response()->json([
+                'message' => 'User Updated',
+                'data' => $user
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'User Not Found',
+            ], 404);
         }
     }
 }

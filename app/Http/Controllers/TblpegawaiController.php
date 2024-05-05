@@ -107,6 +107,8 @@ class TblpegawaiController extends Controller
             ], 404);
         } 
 
+        $updatePegawai['password'] = bcrypt($request->password);
+
         $tblPegawai->update($updatePegawai);
         return response()->json([
             'message' => 'Data Pegawai Berhasil Diupdate',

@@ -90,6 +90,9 @@ Route::post('/forget-password', [App\Http\Controllers\TblcustomerController::cla
 Route::post('/checkCredentialToken', [App\Http\Controllers\TblcustomerController::class, 'checkingCredentialToken']);
 Route::put('/reset-password', [App\Http\Controllers\TblcustomerController::class, 'resetPassword']);
 
+//Konfirmasi Email
+Route::post('/confirm-email', [App\Http\Controllers\TblcustomerController::class, 'confirmEmail']);
+
 // Pegawai Kelvin (ON PROGRESS)
 Route::group(['middleware' => 'auth:api-pegawai'], function () {
     Route::get('/pegawai', [TblpegawaiController::class, 'index']);
@@ -113,3 +116,7 @@ Route::group(['middleware' => 'auth:api-detail-resep'], function() {
 });
 
 Route::get('/jabatan', [App\Http\Controllers\TbljabatanController::class, 'index']);
+
+Route::group(['middleware'=>'auth:api-customer'], function() {
+    Route::get('/customer', [App\Http\Controllers\TblcustomerController::class, 'index']);
+});
