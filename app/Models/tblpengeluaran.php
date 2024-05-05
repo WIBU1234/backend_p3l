@@ -9,7 +9,7 @@ class tblpengeluaran extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = 'tblPengeluaran';
+    protected $table = 'tblpengeluaran';
     protected $fillable = [
         "Nama",
         "Harga",

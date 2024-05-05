@@ -10,7 +10,7 @@ class tblpenitip extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = 'tblPenitip';
+    protected $table = 'tblpenitip';
     protected $primaryKey = 'ID_Penitip';
     protected $fillable = [
         "Nama_Penitip",

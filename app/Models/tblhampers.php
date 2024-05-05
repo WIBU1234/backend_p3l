@@ -11,7 +11,7 @@ class tblhampers extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = 'tblHampers';
+    protected $table = 'tblhampers';
     protected $primaryKey = 'ID_Produk';
     protected $keyType = 'string';
     public $incrementing = false;
