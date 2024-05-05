@@ -9,7 +9,7 @@ class tbltitipan extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = 'tblTitipan';
+    protected $table = 'tbltitipan';
     protected $primaryKey = 'ID_Produk';
     protected $keyType = 'string';
     public $incrementing = false;

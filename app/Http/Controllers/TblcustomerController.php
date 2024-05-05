@@ -17,8 +17,7 @@ class TblcustomerController extends Controller
 {
     use Notifiable, CanResetPassword;
 
-    public function forgetPassword(Request $request)
-    {
+    public function forgetPassword(Request $request){
         try{
             $request->validate([
                 'email' => 'required|email',
@@ -39,7 +38,6 @@ class TblcustomerController extends Controller
             $url = $domain . '/reset-password?token='.$token;
 
             $data['url'] = $url;
-            // $data['token'] = $token;
             $data['email'] = $request->email;
             $data['title'] = 'Reset Password';
             $data['body'] = 'Silahkan klik link dibawah ini untuk mereset password anda';
@@ -47,16 +45,6 @@ class TblcustomerController extends Controller
             Mail::send('forgotPasswordMail', ['data'=>$data], function($message) use ($data){
                 $message->to($data['email'])->subject($data['title']);
             });
-
-            // try {
-            //     Mail::send('forgotPasswordMail', ['data'=>$data], function($message) use ($data){
-            //         $message->to($data['email'])->subject($data['title']);
-            //     });
-            // } catch (\Exception $e) {
-            //     Log::error('Mail sending failed:', [
-            //         'message' => $e->getMessage(),
-            //     ]);
-            // }
 
             $datetime = Carbon::now()->format('Y-m-d H:i:s');
             PasswordReset::updateOrCreate(
@@ -79,13 +67,12 @@ class TblcustomerController extends Controller
             ]);
             return response()->json([
                 'message' => 'Gagal',
-                'data' => $e->getMessage() // change this to get the actual error message
+                'data' => $e->getMessage()
             ], 400);
         }
     }
 
-    public function checkingCredentialToken(Request $request)
-    {
+    public function checkingCredentialToken(Request $request){
         try{
             $request->validate([
                 'token' => 'required'
@@ -117,8 +104,7 @@ class TblcustomerController extends Controller
         }
     }
 
-    public function resetPassword(Request $request)
-    {
+    public function resetPassword(Request $request){
         try{
             $request->validate([
                 'token' => 'required',
@@ -149,7 +135,7 @@ class TblcustomerController extends Controller
             return response()->json([
                 'message' => 'Password berhasil direset'
             ], 200);
-
+            
         }
         catch(\Exception $e){
             Log::error('Error in resetPassword:', [
@@ -158,6 +144,105 @@ class TblcustomerController extends Controller
             return response()->json([
                 'message' => 'Gagal',
                 'data' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function getAllCustomer(){
+        try{
+            $customer = tblcustomer::all();
+
+            return response()->json([
+                'message' => 'Get All Customer Success',
+                'data' => $customer,
+            ], 200);
+        }
+        catch(\Exception $e){
+            return response()->json([
+                'message' => 'Get All Customer Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function searchGetCustomer(Request $request){
+        try{
+            $request->validate([
+                'search' => 'required',
+            ]);
+
+            $customer = tblcustomer::where('Nama_Customer', 'like', '%'.$request->search.'%')
+                ->orWhere('email', 'like', '%'.$request->search.'%')
+                ->get();
+
+            return response()->json([
+                'message' => 'Search Customer Success',
+                'data' => $customer,
+            ], 200);
+        }
+        catch(\Exception $e){
+            return response()->json([
+                'message' => 'Search Customer Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function getCustomerHistory($id){
+        try{
+            $customer = tblcustomer::find($id);
+
+            if(!$customer){
+                return response()->json([
+                    'message' => 'Customer Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
+            // $history = $customer->with('tbltransaksi.tbldetailtransaksi.tblproduk')
+            //     ->get()
+            //     ->where('ID_Customer', $id)
+            //     ->flatMap(function ($transaksi) {
+            //         return $transaksi->tbltransaksi->map(function ($detail) {
+            //             return $detail->tbldetailtransaksi->map(function ($produk) use ($detail) {
+            //                 return [
+            //                     'ID_Transaksi' => $produk->ID_Transaksi,
+            //                     'ID_Produk' => $produk->ID_Produk,
+            //                     'Nama_Produk' => $produk->tblproduk->Nama_Produk,
+            //                     'Harga' => $produk->tblproduk->Harga,
+            //                     'Status' => $detail->Status,
+            //                 ];
+            //             });
+            //         });
+            //     })
+            //     ->collapse()
+            //     ->filter(function ($item) {
+            //         return $item['Status'] == 'Selesai';
+            //     });
+
+            $history = $customer->with(['tbltransaksi' => function ($query) {
+                $query->where('Status', 'Selesai')
+                ->with('tbldetailtransaksi.tblproduk');
+            }])
+                ->where('ID_Customer', $id)
+                ->first();
+
+            if(is_null($history)){
+                return response()->json([
+                    'message' => 'Customer History Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Get Customer History Success',
+                'data' => $history,
+            ], 200);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Get Customer History Failed',
+                'data' => $e->getMessage(),
             ], 400);
         }
     }
