@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Models\tblpenitip;
+use App\Models\tbltitipan;
 
 class TblpenitipController extends Controller
 {
@@ -122,20 +123,34 @@ class TblpenitipController extends Controller
             $storeData = $request->all();
 
             $validate = Validator::make($storeData, [
-                'ID_Penitip' => 'required'
+                'ID_Penitip' => 'required|integer'
             ]);
     
             if($validate->fails()){
                 return response(['message' => $validate->errors()], 400);
             }
 
-            $produk = DB::table('tblpenitip as P')
-                ->join('tbltitipan as T', 'P.ID_Penitip', '=', 'T.ID_Penitip')
-                ->join('tblproduk as PR', 'T.ID_Produk', '=', 'PR.ID_Produk')
-                ->where('P.ID_Penitip', $storeData['ID_Penitip'])
-                ->select('PR.Nama_Produk', 'T.Harga_Beli', 'PR.Harga', 'PR.Stok')
-                ->get();
-            
+            $produk = tblpenitip::with(['titipan.tblproduk'])
+                ->where('ID_Penitip', $storeData['ID_Penitip'])
+                ->get()
+                ->flatMap(function ($penitip) {
+                    return $penitip->titipan->map(function ($titipan) {
+                        return [
+                            'Nama_Produk' => $titipan->tblproduk->Nama_Produk,
+                            'Harga_Beli' => $titipan->Harga_Beli,
+                            'Harga' => $titipan->tblproduk->Harga,
+                            'Stok' => $titipan->tblproduk->Stok,
+                        ];
+                    });
+                });
+
+            // $produk = DB::table('tblpenitip as P')
+            // ->join('tbltitipan as T', 'P.ID_Penitip', '=', 'T.ID_Penitip')
+            // ->join('tblproduk as PR', 'T.ID_Produk', '=', 'PR.ID_Produk')
+            // ->where('P.ID_Penitip', $storeData['ID_Penitip'])
+            // ->select('PR.Nama_Produk', 'T.Harga_Beli', 'PR.Harga', 'PR.Stok')
+            // ->get();
+
             return response()->json([
                 'message' => 'Fetch Produk by Penitip Success',
                 'data' => $produk,

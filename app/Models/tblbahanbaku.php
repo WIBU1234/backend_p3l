@@ -9,7 +9,7 @@ class tblbahanbaku extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = 'tblBahanBaku';
+    protected $table = 'tblbahanbaku';
     protected $primaryKey = 'ID_Bahan_Baku';
     protected $fillable = [
         "Nama_Bahan",

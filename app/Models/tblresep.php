@@ -10,7 +10,7 @@ class tblresep extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = 'tblResep';
+    protected $table = 'tblresep';
     protected $primaryKey = 'ID_Produk';
     protected $keyType = 'string';
     public $incrementing = false;
