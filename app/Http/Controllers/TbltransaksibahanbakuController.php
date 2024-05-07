@@ -52,15 +52,6 @@ class TbltransaksibahanbakuController extends Controller
             }
 
             $transaksibb->bahanbaku()->attach($bahanbakuData);
-
-            // foreach ($bahanbaku as $data) {
-            //     $bahanbakuModel = tblbahanbaku::find($data['ID_Bahan_Baku']);
-
-            //     $transaksibb->bahanbaku()->attach($bahanbakuModel, [
-            //         'Kuantitas' => $data['Kuantitas'],
-            //         'Sub_Total' => $data['Sub_Total']
-            //     ]);
-            // }
         }
 
         return response([
