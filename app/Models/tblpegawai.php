@@ -11,7 +11,7 @@ class tblpegawai extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
     public $timestamps = false;
-    protected $table = 'tblPegawai';
+    protected $table = 'tblpegawai';
     protected $primaryKey = 'ID_Pegawai';
     protected $fillable = [
         "ID_Jabatan",

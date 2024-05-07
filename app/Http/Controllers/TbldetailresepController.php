@@ -122,7 +122,6 @@ class TbldetailresepController extends Controller
         }
     }
     
-
     public function showRelatedProduct(Request $request){
         $storeData = $request->all();
 

@@ -11,7 +11,7 @@ class tblcustomer extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens;
     public $timestamps = false;
-    protected $table = 'tblCustomer';
+    protected $table = 'tblcustomer';
     protected $primaryKey = 'ID_Customer';
     protected $fillable = [
         "Nama_Customer",
@@ -34,5 +34,13 @@ class tblcustomer extends Authenticatable
 
     public function getRole(){
         return 'Customer';
+    }
+
+    public function tbltransaksi(){
+        return $this->hasMany(tbltransaksi::class, 'ID_Customer');
+    }
+
+    public function tblalamat(){
+        return $this->hasMany(tblalamat::class, 'ID_Customer');
     }
 }

@@ -63,6 +63,12 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
     Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
     Route::post('/productForSpesificPenitip', [App\Http\Controllers\TblpenitipController::class, 'getAllProductByPenitip']);
+
+    Route::get('/customer', [App\Http\Controllers\TblcustomerController::class, 'getAllCustomer']);
+    Route::post('/customerSearch', [App\Http\Controllers\TblcustomerController::class, 'searchGetCustomer']);
+    Route::get('/customerHistory/{id}', [App\Http\Controllers\TblcustomerController::class, 'getCustomerHistory']);
+    Route::get('/customerAddress/{id}', [App\Http\Controllers\TblalamatController::class, 'getSpesificAddressByIdUser']);
+    Route::get('/customerTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiToProduk']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
@@ -76,6 +82,11 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::get('/transaksi-bahan/{id}', [App\Http\Controllers\TbltransaksibahanbakuController::class, 'show']);
     Route::put('/transaksi-bahan/{id}', [App\Http\Controllers\TbltransaksibahanbakuController::class, 'update']);
     Route::delete('/transaksi-bahan/{id}', [App\Http\Controllers\TbltransaksibahanbakuController::class, 'destroy']);
+    Route::get('/pengeluaran', [App\Http\Controllers\TblpengeluaranController::class, 'getAllDataPengeluaran']);
+    Route::post('/pengeluaran', [App\Http\Controllers\TblpengeluaranController::class, 'createPengeluaran']);
+    Route::put('/pengeluaran', [App\Http\Controllers\TblpengeluaranController::class, 'updatePengeluaran']);
+    Route::post('/pengeluaranDelete', [App\Http\Controllers\TblpengeluaranController::class, 'deletePengeluaran']);
+    Route::post('/pengeluaranSearch', [App\Http\Controllers\TblpengeluaranController::class, 'searchPengeluaran']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
