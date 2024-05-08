@@ -82,6 +82,9 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::put('/pengeluaran', [App\Http\Controllers\TblpengeluaranController::class, 'updatePengeluaran']);
     Route::post('/pengeluaranDelete', [App\Http\Controllers\TblpengeluaranController::class, 'deletePengeluaran']);
     Route::post('/pengeluaranSearch', [App\Http\Controllers\TblpengeluaranController::class, 'searchPengeluaran']);
+
+    Route::get('/presensi', [App\Http\Controllers\TblpresensiController::class, 'index']);
+    Route::post('/presensi', [App\Http\Controllers\TblpresensiController::class, 'store']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
@@ -104,6 +107,7 @@ Route::put('/reset-password', [App\Http\Controllers\TblcustomerController::class
 Route::post('/confirm-email', [App\Http\Controllers\TblcustomerController::class, 'confirmEmail']);
 
 // Pegawai Kelvin (ON PROGRESS)
+
 Route::group(['middleware' => 'auth:api-pegawai'], function () {
     Route::get('/pegawai', [TblpegawaiController::class, 'index']);
     Route::post('/pegawai', [TblpegawaiController::class, 'store']);
@@ -132,4 +136,17 @@ Route::group(['middleware'=>'auth:api-customer'], function() {
     Route::get('/customer', [App\Http\Controllers\TblcustomerController::class, 'index']);
     Route::put('/customer/{id}', [App\Http\Controllers\TblcustomerController::class, 'update']);
     Route::post('/customer', [App\Http\Controllers\TblcustomerController::class, 'updateProfile']);
+    
+    Route::get('/customer/history', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiCustomer']);
+    Route::get('/customer/history/{nama}', [App\Http\Controllers\TbltransaksiController::class, 'searchDataHistoryTransaksi']);
+    Route::post('/customer/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']); // cmn testing buat show history
+
+    Route::post('/customer/detail-transaksi', [App\Http\Controllers\TbldetailtransaksiController::class, 'store']); // cmn testing buat show history
+
+    Route::get('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'index']);
+    Route::post('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'store']);
+
+    Route::get('/produk', [App\Http\Controllers\TblprodukController::class, 'index']);
 });
+
+Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'index']);
