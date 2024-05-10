@@ -35,21 +35,42 @@ class TbldetailresepController extends Controller
         ])->validate();
     }
 
-    public function store(Request $request) {
+    // public function store(Request $request) {
+    //     $simpanDetailResep = $request->all();
+        
+    //     foreach ($simpanDetailResep as $data) {
+    //         $validateData = $this->validateItem($data);
+
+    //         tbldetailresep::create($validateData);
+    //     }
+
+    //     $detailResep = tbldetailresep::where('ID_Produk', $simpanDetailResep[0]['ID_Produk'])->get();
+
+    //     return response()->json([
+    //         'message' => 'Detail Resep Berhasil Disimpan',
+    //         'status' => 200,
+    //         'data' => $detailResep
+    //     ], 200);
+    // }
+
+    public function store (request $request) {
         $simpanDetailResep = $request->all();
         
-        foreach ($simpanDetailResep as $data) {
-            $validateData = $this->validateItem($data);
+        // $validateData = $this->validateItem($simpanDetailResep);
 
-            tbldetailresep::create($validateData);
+        $tblDetailResep = tbldetailresep::upsert($simpanDetailResep, ['ID_Bahan_Baku', 'ID_Produk'], ['Kuantitas']);
+
+        if ($tblDetailResep === 0) {
+            return response()->json([
+                'message' => 'Detail Resep Gagal Disimpan',
+                'status' => 500
+            ], 500);
         }
-
-        $detailResep = tbldetailresep::where('ID_Produk', $simpanDetailResep[0]['ID_Produk'])->get();
 
         return response()->json([
             'message' => 'Detail Resep Berhasil Disimpan',
             'status' => 200,
-            'data' => $detailResep
+            'data' => $simpanDetailResep
         ], 200);
     }
 

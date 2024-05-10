@@ -10,8 +10,11 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class TblcustomerController extends Controller
 {
@@ -145,6 +148,119 @@ class TblcustomerController extends Controller
                 'message' => 'Gagal',
                 'data' => $e->getMessage()
             ], 400);
+        }
+    }
+
+    public function confirmEmail(Request $request) {
+        $user = tblcustomer::where('email', $request->email)->get();
+
+        if ($user->isEmpty()) {
+            return response()->json([
+                'message' => 'User Not Found',
+            ], 404);
+        }
+
+        $domain = URL::to('http://localhost:5173');
+        $url = $domain . '/';
+
+        $data['url'] = $url;
+        $data['email'] = $request->email;
+        $data['title'] = 'Konfirmasi Email';
+
+        Mail::send('confirmationEmailRegister', ['data'=>$data], function($message) use ($data){
+            $message->to($data['email'])->subject($data['title']);
+        });
+
+        return response()->json([
+            'message' => 'Berhasil Mengirimkan Email Konfirmasi'
+        ], 200);
+    }
+
+    public function index() {
+        $user = Auth::user();
+        $tblcustomer = tblcustomer::find($user->ID_Customer);
+        if (!$user) {
+            return response()->json([
+                'message' => 'User Not Found',
+            ], 404);
+        } else {
+            return response()->json([
+                'message' => 'User Found',
+                'data' => $tblcustomer
+            ], 200);
+        }
+    }
+
+    public function updateProfile(Request $request) {
+        $user = Auth::user();
+        $tblcustomer = tblcustomer::find($user->ID_Customer);
+    
+        if (is_null($tblcustomer)) {
+            return response()->json([
+                'message' => 'User Not Found',
+            ], 404);
+        }
+        
+        $updateProfile = $request->all();
+
+        $validate = Validator::make($updateProfile, [
+            'Profile' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($validate->fails()) {
+            return response([
+                'message' => $validate->errors(),
+            ], 400);
+        }
+    
+        if ($request->hasFile('Profile')) {
+            $uploadFolder = 'customer';
+            $image = $request->file('Profile');
+            $image_uploaded_path = $image->store($uploadFolder, 'public');
+            $uploadImageResponse = basename($image_uploaded_path);
+    
+            Storage::disk('public')->delete('customer/'.$tblcustomer->Profile);
+    
+            $updateProfile['Profile'] = $uploadImageResponse;
+            $tblcustomer->update($updateProfile);
+        } else {
+            return response ([
+                'message' => 'No such File included',
+            ], 401);
+        }
+    
+        return response([
+            'message' => 'Profile image updated successfully',
+            'data' => $tblcustomer,
+        ], 200);
+    }    
+
+    public function update(request $request, $id) {
+        try {
+            $tblcustomer = tblcustomer::find($id)->first();
+            $updatecustomer = $request->all();
+            $validate = Validator::make($updatecustomer, [
+                'Nama_Customer' => 'required',
+                'email' => 'required',
+                'Nomor_telepon' => 'required',
+            ]);
+
+            if ($validate->fails()) {
+                return response([
+                    'message' => $validate->errors(),
+                ], 404);
+            }
+
+            $tblcustomer->update($updatecustomer);
+
+            return response()->json([
+                'message' => 'User Updated',
+                'data' => $tblcustomer
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'User Not Found',
+            ], 404);
         }
     }
 
