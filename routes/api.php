@@ -62,6 +62,8 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
     Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
     Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
+    Route::get('/searchPenitipByID/{id}', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipById']);
+    Route::post('/searchPenitipByNama', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipByNama']);
     Route::post('/productForSpesificPenitip', [App\Http\Controllers\TblpenitipController::class, 'getAllProductByPenitip']);
 
     Route::get('/customer', [App\Http\Controllers\TblcustomerController::class, 'getAllCustomer']);
@@ -98,6 +100,7 @@ Route::get('/getBahanBakuAll', [App\Http\Controllers\TblbahanbakuController::cla
 Route::post('/createBahanBaku', [App\Http\Controllers\TblbahanbakuController::class, 'createBahanBaku']);
 Route::put('/updateBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'updateBahanBaku']);
 Route::delete('/deleteBahanBaku/{id}', [App\Http\Controllers\TblbahanbakuController::class, 'deleteBahanBaku']);
+Route::post('/searchBahanBakuByNama', [App\Http\Controllers\TblbahanbakuController::class, 'SearchBahanBakuByNama']);
 
 Route::post('/forget-password', [App\Http\Controllers\TblcustomerController::class, 'forgetPassword']);
 Route::post('/checkCredentialToken', [App\Http\Controllers\TblcustomerController::class, 'checkingCredentialToken']);
