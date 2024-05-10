@@ -85,6 +85,9 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::post('/pengeluaranDelete', [App\Http\Controllers\TblpengeluaranController::class, 'deletePengeluaran']);
     Route::post('/pengeluaranSearch', [App\Http\Controllers\TblpengeluaranController::class, 'searchPengeluaran']);
 
+    Route::put('/updatePengeluaranByID/{id}', [App\Http\Controllers\TblpengeluaranController::class, 'updatePengeluaranByID']);
+    Route::delete('/deletePengeluaranByID/{id}', [App\Http\Controllers\TblpengeluaranController::class, 'deletePengeluaranByID']);
+
     Route::get('/presensi', [App\Http\Controllers\TblpresensiController::class, 'index']);
     Route::post('/presensi', [App\Http\Controllers\TblpresensiController::class, 'store']);
 });
