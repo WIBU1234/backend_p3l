@@ -58,14 +58,6 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::put('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'update']);
     Route::delete('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'destroy']);
 
-    Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
-    Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
-    Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
-    Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
-    Route::get('/searchPenitipByID/{id}', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipById']);
-    Route::post('/searchPenitipByNama', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipByNama']);
-    Route::post('/productForSpesificPenitip', [App\Http\Controllers\TblpenitipController::class, 'getAllProductByPenitip']);
-
     Route::get('/customerGetAll', [App\Http\Controllers\TblcustomerController::class, 'getAllCustomer']);
     Route::post('/customerSearch', [App\Http\Controllers\TblcustomerController::class, 'searchGetCustomer']);
     Route::get('/customerHistory/{id}', [App\Http\Controllers\TblcustomerController::class, 'getCustomerHistory']);
@@ -91,12 +83,25 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::post('/pengeluaranDelete', [App\Http\Controllers\TblpengeluaranController::class, 'deletePengeluaran']);
     Route::post('/pengeluaranSearch', [App\Http\Controllers\TblpengeluaranController::class, 'searchPengeluaran']);
 
+    Route::put('/updatePengeluaranByID/{id}', [App\Http\Controllers\TblpengeluaranController::class, 'updatePengeluaranByID']);
+    Route::delete('/deletePengeluaranByID/{id}', [App\Http\Controllers\TblpengeluaranController::class, 'deletePengeluaranByID']);
+
     Route::get('/presensi', [App\Http\Controllers\TblpresensiController::class, 'index']);
     Route::post('/presensi', [App\Http\Controllers\TblpresensiController::class, 'store']);
+
+    Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
+    Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
+    Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
+    Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
+    Route::get('/searchPenitipByID/{id}', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipById']);
+    Route::post('/searchPenitipByNama', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipByNama']);
+    Route::post('/productForSpesificPenitip', [App\Http\Controllers\TblpenitipController::class, 'getAllProductByPenitip']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     //rute yang cuma bisa diakses customer
+    Route::get('/customer/history', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiCustomer']);
+    Route::get('/customer/history/{nama}', [App\Http\Controllers\TbltransaksiController::class, 'searchDataHistoryTransaksi']);
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
 });
 
@@ -146,8 +151,7 @@ Route::group(['middleware'=>'auth:api-customer'], function() {
     Route::put('/customer/{id}', [App\Http\Controllers\TblcustomerController::class, 'update']);
     Route::post('/customer', [App\Http\Controllers\TblcustomerController::class, 'updateProfile']);
     
-    Route::get('/customer/history', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiCustomer']);
-    Route::get('/customer/history/{nama}', [App\Http\Controllers\TbltransaksiController::class, 'searchDataHistoryTransaksi']);
+   
     Route::post('/customer/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']); // cmn testing buat show history
 
     Route::post('/customer/detail-transaksi', [App\Http\Controllers\TbldetailtransaksiController::class, 'store']); // cmn testing buat show history

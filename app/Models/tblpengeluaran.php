@@ -10,7 +10,9 @@ class tblpengeluaran extends Model
     use HasFactory;
     public $timestamps = false;
     protected $table = 'tblpengeluaran';
+    protected $primaryKey = 'ID_Pengeluaran';
     protected $fillable = [
+        "ID_Pengeluaran",
         "Nama",
         "Harga",
         "Tanggal",

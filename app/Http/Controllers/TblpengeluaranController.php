@@ -57,6 +57,80 @@ class TblpengeluaranController extends Controller
         }
     }
 
+    public function updatePengeluaranByID(Request $request, $id){
+        try{
+            $validator = Validator::make($request->all(), [
+                'Nama' => 'required|string',
+                'Harga' => 'required|integer',
+                'Tanggal' => 'required|date',
+            ]);
+
+            if($validator->fails()){
+                return response()->json([
+                    'message' => 'Validasi gagal',
+                    'data' => $validator->errors()
+                ], 400);
+            };
+
+            $updated = tblpengeluaran::where('ID_Pengeluaran', $id)
+                ->update([
+                    'Nama' => $request->Nama,
+                    'Harga' => $request->Harga,
+                    'Tanggal' => $request->Tanggal,
+                ]);
+
+            if(!$updated){
+                return response()->json([
+                    'message' => 'Pengeluaran Not Found',
+                    'data' => '404'
+                ], 404);
+            }
+
+            $data = [
+                'Nama' => $request->Nama,
+                'Harga' => $request->Harga,
+                'Tanggal' => $request->Tanggal,
+            ];
+
+            return response()->json([
+                'message' => 'Update Pengeluaran Success',
+                'data' => $data,
+            ], 200);
+            
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Update Pengeluaran Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function deletePengeluaranById($id){
+        try{
+            $deletedData = tblpengeluaran::where('ID_Pengeluaran', $id)->first();
+
+            $deleted = tblpengeluaran::where('ID_Pengeluaran', $id)->delete();
+    
+            if(!$deleted){
+                return response()->json([
+                    'message' => 'Pengeluaran Not Found',
+                    'data' => '404'
+                ], 404);
+            }
+    
+            return response()->json([
+                'message' => 'Delete Pengeluaran Success',
+                'data' => $deletedData,
+            ], 200);
+            
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Delete Pengeluaran Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     public function updatePengeluaran(Request $request){
         try{
             $validator = Validator::make($request->all(), [
