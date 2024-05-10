@@ -10,6 +10,7 @@ class tblalamat extends Model
     use HasFactory;
     protected $table = 'tblalamat';
     protected $primaryKey = 'ID_Alamat';
+    public $timestamps = false;
     protected $fillable = [
         "ID_Customer",
         "Alamat",

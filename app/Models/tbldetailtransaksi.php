@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class tbldetailtransaksi extends Model
 {
     use HasFactory;
+    public $timestamps = false;
     protected $table = 'tbldetailtransaksi';
     protected $fillable = [
         "ID_Transaksi",
