@@ -163,4 +163,50 @@ class TblpenitipController extends Controller
             ], 400);
         }
     }
+
+    public function searchPenitipById($id){
+        try{
+            $penitip = tblpenitip::where('ID_Penitip', $id)->first();
+
+            if(!$penitip){
+                return response()->json([
+                    'message' => 'Penitip not found',
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Search Penitip Success',
+                'data' => $penitip,
+            ], 200);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Search Penitip Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function searchPenitipByNama(Request $request){
+        try{
+            $penitip = tblpenitip::where('Nama_Penitip', 'like', '%'.$request->Nama_Penitip.'%')->get();
+
+            if(!$penitip){
+                return response()->json([
+                    'message' => 'Penitip not found',
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Search Penitip Success',
+                'data' => $penitip,
+            ], 200);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Search Penitip Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
 }
