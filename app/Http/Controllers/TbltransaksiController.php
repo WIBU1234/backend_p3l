@@ -145,7 +145,8 @@ class TbltransaksiController extends Controller
             if ($transaksi->count() == 0) {
                 return response()->json([
                     'message' => 'History Transaksi tidak ditemukan',
-                ], 401);
+                    'data' => null,
+                ]);
             }
 
             return response()->json([
