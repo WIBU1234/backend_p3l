@@ -122,4 +122,21 @@ class TblbahanbakuController extends Controller
             ], 400);
         }
     }
+
+    public function SearchBahanBakuByNama(Request $request){
+        try{
+            $bahanbaku = tblbahanbaku::where('Nama_Bahan', 'like', '%'.$request->Nama_Bahan.'%')->get();
+            
+            return response()->json([
+                'message' => 'Fetch Bahan Baku By Nama Success',
+                'data' => $bahanbaku,
+            ], 200);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'message' => 'Fetch Bahan Baku By Nama Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }        
+    }
 }
