@@ -17,8 +17,8 @@ class AuthController extends Controller
             'Nama_Customer' => 'required|max:60',
             'email' => 'required|email:rfc,dns|unique:tblCustomer',
             'password' => 'required',
-            'Nomor_Telepon' => 'required|numeric',
-            'Profile' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'Nomor_telepon' => 'required|numeric',
+            // 'Profile' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if($validate->fails())
