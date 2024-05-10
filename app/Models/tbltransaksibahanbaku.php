@@ -10,7 +10,7 @@ class tbltransaksibahanbaku extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = 'tblTransaksiBahanBaku';
+    protected $table = 'tbltransaksibahanbaku';
     protected $primaryKey = 'ID_Transaksi_Baku';
     protected $fillable = [
         "Tanggal",
