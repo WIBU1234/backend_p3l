@@ -97,7 +97,7 @@ class TblprodukController extends Controller
                 'Nama_Produk' => 'required',
                 'Harga' => 'required',
                 'Stok' => 'nullable',
-                'StokReady' => 'nullable',
+                'StokReady' => 'required',
                 'Gambar' => 'required|image:jpeg,png,jpg|max:2048'
             ]);
 
@@ -113,7 +113,7 @@ class TblprodukController extends Controller
             $gambarProdukPath = basename($gambarProdukFiles);
 
             // pengaturan nilai stok dan stokready
-            $stok = $request->has('Stok') ? $request->Stok : 0;
+            //$stok = $request->has('Stok') ? $request->Stok : 0;
             $StokReady = $request->has('StokReady') ? $request->StokReady : 0;
 
             // Pengaturan ID resep
@@ -124,7 +124,7 @@ class TblprodukController extends Controller
                 'ID_Kategori' => $request->ID_Kategori,
                 'Nama_Produk' => $request->Nama_Produk,
                 'Harga' => $request->Harga,
-                'Stok' => $stok,
+                'Stok' => $request->Stok,
                 'StokReady' => $StokReady,
                 'Gambar' => $gambarProdukPath
             ]);

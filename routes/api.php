@@ -30,6 +30,11 @@ Route::middleware(['auth:api-pegawai', 'role:Admin,Owner,MO'])->group(function (
     Route::post('/logoutPegawai', [App\Http\Controllers\AuthController::class, 'logoutPegawai']);
 });
 
+Route::middleware(['auth:api-pegawai', 'role:Admin,MO'])->group(function() {
+    // Rute yang bisa diakses admin$MO
+    Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
+});
+
 Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     //Rute yang cuma bisa diakses Admin
     Route::get('/produk', [App\Http\Controllers\TblprodukController::class, 'index']);
@@ -88,8 +93,7 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
 
     Route::get('/presensi', [App\Http\Controllers\TblpresensiController::class, 'index']);
     Route::post('/presensi', [App\Http\Controllers\TblpresensiController::class, 'store']);
-
-    Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
+    
     Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
     Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
     Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
