@@ -88,6 +88,8 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
 
     Route::get('/presensi', [App\Http\Controllers\TblpresensiController::class, 'index']);
     Route::post('/presensi', [App\Http\Controllers\TblpresensiController::class, 'store']);
+    Route::put('/presensi/{id}', [App\Http\Controllers\TblpresensiController::class, 'update']);
+    Route::get('/presensi/{id}', [App\Http\Controllers\TblpresensiController::class, 'show']);
 
     Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
     Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
