@@ -49,6 +49,8 @@ class TbltransaksibahanbakuController extends Controller
                     'Kuantitas' => $data['Kuantitas'],
                     'Sub_Total' => $data['Sub_Total'] 
                 ];
+
+                $this->addStok($data['ID_Bahan_Baku'], $data['Kuantitas']);
             }
 
             $transaksibb->bahanbaku()->attach($bahanbakuData);
@@ -80,6 +82,8 @@ class TbltransaksibahanbakuController extends Controller
             return response(['message' => $validate->errors()], 400);
         }
 
+        $this->deleteStok($transaksibb);
+
         $transaksibb->update($request->only('Tanggal'));
 
         if ($request->has('bahanbaku')) {
@@ -91,6 +95,8 @@ class TbltransaksibahanbakuController extends Controller
                     'Kuantitas' => $data['Kuantitas'],
                     'Sub_Total' => $data['Sub_Total'] 
                 ];
+
+                $this->addStok($data['ID_Bahan_Baku'], $data['Kuantitas']);
             }
 
             $transaksibb->bahanbaku()->sync($bahanbakuData);
@@ -134,5 +140,24 @@ class TbltransaksibahanbakuController extends Controller
             'message' => 'Retrieve Hampers Success',
             'data' => $transaksibb
         ], 200);
+    }
+
+    private function addStok($bahanBakuID, $quantity) {
+        $bahanbaku = tblbahanbaku::find($bahanBakuID);
+
+        if ($bahanbaku) {
+            $bahanbaku->Stok += $quantity;
+            $bahanbaku->save();
+        }
+    }
+
+    private function deleteStok($transaksi) {
+        foreach ($transaksi->bahanbaku as $bahanbaku) {
+            $bahan = tblbahanbaku::find($bahanbaku->ID_Bahan_Baku);
+            if ($bahan) {
+                $bahan->Stok -= $bahanbaku->pivot->Kuantitas;
+                $bahan->save();
+            }
+        }
     }
 }
