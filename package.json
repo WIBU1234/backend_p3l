@@ -3,7 +3,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "deploy": "composer install && php artisan passport:install"
+        "deploy": "composer install && php artisan key:generate --force && php artisan passport:install"
     },
     "devDependencies": {
         "axios": "^1.1.2",
