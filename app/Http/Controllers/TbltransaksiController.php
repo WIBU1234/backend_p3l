@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\tblalamat;
+use App\Models\tblpegawai;
 use App\Models\tbltransaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,7 @@ class TbltransaksiController extends Controller
 {
     public function index()
     {
-        $transaksi = tbltransaksi::with(['tblAlamat', 'tbldetailtransaksi.tblproduk'])
+        $transaksi = tbltransaksi::with(['tblalamat', 'tblcustomer', 'products'])
             ->get();
 
         if ($transaksi->count() == 0) {
@@ -28,16 +29,23 @@ class TbltransaksiController extends Controller
         ], 200);
     }
 
+
+    //Pemesanan
+    //Generate ID Transaksi
+    //Status auto Menunggu Pembayaran dan Total Bayar 0
+    //Nambah poin customer
+    //Ngurangin total transaksi klo customer pake poin
+
     public function store(request $request) {
         try {
             $user = Auth::user();
-            
-            $totalTransaksi = tbltransaksi::count();
 
             $storeTransaksi = $request->all();
+
+            //Dapetin Pegawai Admin
+            $pegawai = tblpegawai::where('ID_Jabatan', 2)->first();
             
             $validate = Validator::make($storeTransaksi, [
-                'ID_Pegawai' => 'required',
                 'ID_Alamat' => 'required',
                 'Total_Transaksi' => 'required',
                 'Tanggal_Ambil' => 'required',
@@ -48,34 +56,68 @@ class TbltransaksiController extends Controller
                     'message' => $validate->errors(),
                     'status' => 404
                 ], 404);
-            } else {
+            } 
 
-                if ($totalTransaksi < 10)
-                    $totalTransaksi = '00' . $totalTransaksi;
-                else if ($totalTransaksi < 100)
-                    $totalTransaksi = '0' . $totalTransaksi;
-                else
-                    $totalTransaksi = strval($totalTransaksi);
+            $storeTransaksi['ID_Transaksi'] = $this->generateIDTrans();
+            $storeTransaksi['ID_Customer'] = $user->ID_Customer;
+            $storeTransaksi['ID_Pegawai'] = $pegawai->ID_Pegawai;
+            $storeTransaksi['Status'] = 'Menunggu Pembayaran';
+            $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
+            $storeTransaksi['Total_Pembayaran'] = 0;
 
-                $storeTransaksi['ID_Transaksi'] = date('y') . '.' . date('m') . '.' . $totalTransaksi;
-                $storeTransaksi['ID_Customer'] = $user->ID_Customer;
-                $storeTransaksi['Status'] = 'Menunggu Pembayaran';
-                $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
-                $storeTransaksi['Total_Pembayaran'] = 0;
+            $transaksi = tbltransaksi::create($storeTransaksi);
 
-                $transaksi = tbltransaksi::create($storeTransaksi);
+            if($request->has('products')) {
+                $products = $request->input('products');
 
-                return response([
-                    'message' => 'Store Transaksi Success',
-                    'data' => $transaksi,
-                ], 200);
+                $productsData = [];
+                foreach ($products as $data) {
+                    $productsData[$data['ID_Produk']] = [
+                        'Kuantitas' => $data['Kuantitas'],
+                        'Sub_Total' => $data['Sub_Total']
+                    ];
+                }
+
+                $transaksi->products()->attach($productsData);
             }
+
+            return response([
+                'message' => 'Store Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Store Transaksi Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }
+    }
+
+    private function generateIDTrans()
+    {
+        $year = date('y');
+        $month = date('m');
+
+        $latestTransaksi = tbltransaksi::latest('ID_Transaksi')->first();
+        if ($latestTransaksi) {
+            $lastID = $latestTransaksi->ID_Transaksi;
+            $parts = explode('.', $lastID);
+            $index = intval($parts[2]);
+            $newID = $index + 1;
+        } else {
+            $newID = 1;
+        }
+
+        // Make Sure gak ada ID kedoble
+        do {
+            $existingTrans = tbltransaksi::where('ID_Transaksi', $year . '.' . $month . '.' . $newID)->first();
+            $newID++;
+        } while ($existingTrans);
+
+        $id = $year . '.' . $month . '.' . $newID;
+
+        return $id;
     }
 
 
