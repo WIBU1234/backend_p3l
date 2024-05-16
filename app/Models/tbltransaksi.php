@@ -11,7 +11,7 @@ class tbltransaksi extends Model
     use HasFactory;
     public $timestamps = false;
     protected $table = 'tbltransaksi';
-    protected $PrimaryKey = 'ID_Transaksi';
+    protected $primaryKey = 'ID_Transaksi';
     protected $keyType = 'string';
     public $incrementing = false;
     protected $fillable = [

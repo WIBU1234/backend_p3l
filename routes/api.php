@@ -104,10 +104,20 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     //rute yang cuma bisa diakses customer
+    Route::get('/produk-customer', [App\Http\Controllers\TblprodukController::class, 'index']);
+    Route::get('/produk/on-date/{date}', [App\Http\Controllers\TblprodukController::class, 'showProductByTglAmbil']);
+
     Route::get('/customer/history', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiCustomer']);
     Route::get('/customer/history/{nama}', [App\Http\Controllers\TbltransaksiController::class, 'searchDataHistoryTransaksi']);
+    
+    Route::get('/detail-transaksi', [App\Http\Controllers\TbldetailtransaksiController::class, 'index']);
+    Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'index']);
+    Route::post('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']);
+
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
 });
+
+Route::get('/detail-transaksi-bahan', [App\Http\Controllers\TbldetailtransaksibahanbakuController::class, 'index']);
 
 
 // Temporary Seto
@@ -162,8 +172,5 @@ Route::group(['middleware'=>'auth:api-customer'], function() {
 
     Route::get('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'index']);
     Route::post('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'store']);
-
-    Route::get('/produk', [App\Http\Controllers\TblprodukController::class, 'index']);
 });
 
-Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'index']);

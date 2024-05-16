@@ -29,6 +29,8 @@ class TbltransaksiController extends Controller
         ], 200);
     }
 
+    
+
 
     //Pemesanan
     //Generate ID Transaksi
@@ -74,7 +76,7 @@ class TbltransaksiController extends Controller
                 foreach ($products as $data) {
                     $productsData[$data['ID_Produk']] = [
                         'Kuantitas' => $data['Kuantitas'],
-                        'Sub_Total' => $data['Sub_Total']
+                        'Sub_Total' => $data['Sub_Total'] //Front End ditambah perkalian
                     ];
                 }
 
