@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\tblproduk;
+use App\Models\tbltransaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 
 class TblprodukController extends Controller
@@ -283,6 +286,47 @@ class TblprodukController extends Controller
         $produk =  tblproduk::find($id);
 
         if (!is_null($produk)) {
+            return response([
+                'message' => 'Produk found',
+                'data' => $produk
+            ], 200);
+        }
+
+        return response([
+            'message' => 'Produk not found',
+            'data' => null
+        ], 404);
+    }
+
+    public function showProductByTglAmbil(String $date)
+    {
+        $today = Carbon::today();
+
+        $transaksi = tbltransaksi::where('Tanggal_Ambil', '>=', $today)->with(['products'])->get();
+
+        $productQty = [];
+        
+        //kumpulin semua kuantitas produk di array productQty
+        foreach ($transaksi as $trans) {
+            foreach ($trans->products as $product) {
+                if (!isset($productQty[$product->ID_Produk])) {
+                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
+                } else {
+                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+        
+        $produk = tblproduk::all();
+        
+        //Kurangi limit dengan array kuantitas
+        foreach ($produk as $prod) {
+            if (isset($productQty[$prod->ID_Produk])) {
+                $prod->Stok -= $productQty[$prod->ID_Produk];
+            }
+        }
+
+        if (count($produk) > 0) {
             return response([
                 'message' => 'Produk found',
                 'data' => $produk
