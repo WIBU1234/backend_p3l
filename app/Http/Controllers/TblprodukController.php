@@ -339,6 +339,15 @@ class TblprodukController extends Controller
         ], 404);
     }
 
+    public function reduceStok(string $id_trans)
+    {
+        $transaksi = tbltransaksi::where('ID_Transaksi', $id_trans);
+        $produk = tblproduk::all();
+        //Kalo hampers dan resep yang dikurangi stok, klo ada ready stok juga dikurangi
+
+        //Kalo titipan yang dikurangi readystok
+    }
+
     public function destroy(string $id)
     {
         $produk = tblproduk::find($id);
