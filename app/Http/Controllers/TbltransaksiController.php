@@ -49,7 +49,6 @@ class TbltransaksiController extends Controller
             
             $validate = Validator::make($storeTransaksi, [
                 'ID_Alamat' => 'required',
-                'Total_Transaksi' => 'required',
                 'Tanggal_Ambil' => 'required',
             ]);
 
@@ -68,6 +67,7 @@ class TbltransaksiController extends Controller
             $storeTransaksi['Total_Pembayaran'] = 0;
 
             $transaksi = tbltransaksi::create($storeTransaksi);
+            $totalHarga = 0;
 
             if($request->has('products')) {
                 $products = $request->input('products');
@@ -76,17 +76,23 @@ class TbltransaksiController extends Controller
                 foreach ($products as $data) {
                     $productsData[$data['ID_Produk']] = [
                         'Kuantitas' => $data['Kuantitas'],
-                        'Sub_Total' => $data['Sub_Total'] //Front End ditambah perkalian
+                        'Sub_Total' => $data['Sub_Total'] //Butuh fungsi autogenerate hitung sub_total
                     ];
+
+                    $totalHarga += $data['Sub_Total'];
                 }
 
                 $transaksi->products()->attach($productsData);
             }
 
-            return response([
-                'message' => 'Store Transaksi Success',
-                'data' => $transaksi,
-            ], 200);
+            $transaksi->Total_Transaksi = $totalHarga; //Total Harga mainin di bandend dan frontend
+
+            if ($transaksi->save()) {
+                return response([
+                    'message' => 'Store Transaksi Success',
+                    'data' => $transaksi,
+                ], 200);
+            }
 
         } catch (\Exception $e) {
             return response()->json([
@@ -113,13 +119,17 @@ class TbltransaksiController extends Controller
 
         // Make Sure gak ada ID kedoble
         do {
-            $existingTrans = tbltransaksi::where('ID_Transaksi', $year . '.' . $month . '.' . $newID)->first();
+            $id = $year . '.' . $month . '.' . $newID;
+            $existingTrans = tbltransaksi::where('ID_Transaksi', $year . '.' . $month . '.' . $id)->first();
             $newID++;
         } while ($existingTrans);
 
-        $id = $year . '.' . $month . '.' . $newID;
-
         return $id;
+    }
+
+    public function countTrans()
+    {
+        
     }
 
 

@@ -107,6 +107,10 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::get('/produk-customer', [App\Http\Controllers\TblprodukController::class, 'index']);
     Route::get('/produk/on-date/{date}', [App\Http\Controllers\TblprodukController::class, 'showProductByTglAmbil']);
 
+    // Mengurangi stok dan kuota berdasarkan id transaksinya
+    Route::post('/reduce-stok/{id_trans}', [App\Http\Controllers\TblprodukController::class, 'reduceStok']);
+    Route::post('/reduce-stok-ready/{id_trans}', [App\Http\Controllers\TblprodukController::class, 'reduceReady']);
+
     Route::get('/customer/history', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiCustomer']);
     Route::get('/customer/history/{nama}', [App\Http\Controllers\TbltransaksiController::class, 'searchDataHistoryTransaksi']);
     
