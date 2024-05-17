@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\tblhampers;
 use App\Models\tblproduk;
+use App\Models\tblresep;
+use App\Models\tbltitipan;
 use App\Models\tbltransaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -341,11 +344,113 @@ class TblprodukController extends Controller
 
     public function reduceStok(string $id_trans)
     {
-        $transaksi = tbltransaksi::where('ID_Transaksi', $id_trans);
-        $produk = tblproduk::all();
-        //Kalo hampers dan resep yang dikurangi stok, klo ada ready stok juga dikurangi
+        //Mengurangi kuota hampers dan resep saja
+        $transaksi = tbltransaksi::where('ID_Transaksi', $id_trans)->first();
 
-        //Kalo titipan yang dikurangi readystok
+        if (!$transaksi || count($transaksi->products) == 0) {
+            return response([
+                'message' => 'Transaksi tidak ditemukan',
+                'data' => null
+            ], 404);
+        }
+
+        $updatedProducts = [];
+        $hampers = tblhampers::with(['tblproduk', 'resep'])->get();
+
+        foreach ($hampers as $hamper) {
+            foreach ($transaksi->products as $prod) {
+                if ($hamper->ID_Produk == $prod->ID_Produk) {
+                    $hamper->tblproduk->Stok -= $prod->pivot->Kuantitas;
+                    $hamper->tblproduk->save();
+                    $updatedProducts[] = $hamper->tblproduk;
+                }
+            }
+        }
+
+        $homecooks = tblresep::with(['tblproduk'])->get();
+
+        foreach ($homecooks as $homecook) {
+            foreach ($transaksi->products as $prod) {
+                if ($homecook->ID_Produk == $prod->ID_Produk) {
+                    $homecook->tblproduk->Stok -= $prod->pivot->Kuantitas;
+                    $homecook->tblproduk->save();
+                    $updatedProducts[] = $homecook->tblproduk;
+                }
+            }
+        }
+
+        if (count($updatedProducts) > 0) {
+            return response([
+                'message' => 'Update Produk Success',
+                'updated_products' => $updatedProducts
+            ], 200);
+        }
+        
+        return response([
+            'message' => 'Update Content Failed',
+            'data' => $transaksi
+        ], 400);
+    }
+
+    public function reduceReady(string $id_trans)
+    {
+        $transaksi = tbltransaksi::where('ID_Transaksi', $id_trans)->first();
+
+        if (!$transaksi || count($transaksi->products) == 0) {
+            return response([
+                'message' => 'Transaksi tidak ditemukan',
+                'data' => null
+            ], 404);
+        }
+
+        $updatedProducts = [];
+        $hampers = tblhampers::with(['tblproduk', 'resep'])->get();
+
+        foreach ($hampers as $hamper) {
+            foreach ($transaksi->products as $prod) {
+                if ($hamper->ID_Produk == $prod->ID_Produk) {
+                    $hamper->tblproduk->StokReady -= $prod->pivot->Kuantitas;
+                    $hamper->tblproduk->save();
+                    $updatedProducts[] = $hamper->tblproduk;
+                }
+            }
+        }
+
+        $homecooks = tblresep::with(['tblproduk'])->get();
+
+        foreach ($homecooks as $homecook) {
+            foreach ($transaksi->products as $prod) {
+                if ($homecook->ID_Produk == $prod->ID_Produk) {
+                    $homecook->tblproduk->StokReady -= $prod->pivot->Kuantitas;
+                    $homecook->tblproduk->save();
+                    $updatedProducts[] = $homecook->tblproduk;
+                }
+            }
+        }
+
+        $titipan = tbltitipan::with(['tblproduk'])->get();
+
+        foreach ($titipan as $titip) {
+            foreach ($transaksi->products as $prod) {
+                if ($titip->ID_Produk == $prod->ID_Produk) {
+                    $titip->tblproduk->StokReady -= $prod->pivot->Kuantitas;
+                    $titip->tblproduk->save();
+                    $updatedProducts[] = $titip->tblproduk;
+                }
+            }
+        }
+
+        if (count($updatedProducts) > 0) {
+            return response([
+                'message' => 'Update Produk Success',
+                'updated_products' => $updatedProducts
+            ], 200);
+        }
+        
+        return response([
+            'message' => 'Update Content Failed',
+            'data' => $transaksi
+        ], 400);
     }
 
     public function destroy(string $id)
