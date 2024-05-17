@@ -107,7 +107,7 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::get('/produk-customer', [App\Http\Controllers\TblprodukController::class, 'index']);
     Route::get('/produk/on-date/{date}', [App\Http\Controllers\TblprodukController::class, 'showProductByTglAmbil']);
 
-    // Mengurangi stok dan kuota berdasarkan id transaksinya
+    // Mengurangi stok dan kuota berdasarkan id transaksinya (Not Done)
     Route::post('/reduce-stok/{id_trans}', [App\Http\Controllers\TblprodukController::class, 'reduceStok']);
     Route::post('/reduce-stok-ready/{id_trans}', [App\Http\Controllers\TblprodukController::class, 'reduceReady']);
 
@@ -117,6 +117,8 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::get('/detail-transaksi', [App\Http\Controllers\TbldetailtransaksiController::class, 'index']);
     Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'index']);
     Route::post('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']);
+
+    Route::post('/reduce-poin', [App\Http\Controllers\TbltransaksiController::class, 'reducePoin']);
 
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
 });

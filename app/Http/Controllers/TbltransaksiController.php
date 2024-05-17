@@ -85,6 +85,8 @@ class TbltransaksiController extends Controller
                 $transaksi->products()->attach($productsData);
             }
 
+            //Di Front End bakal ada field hidden buat nampung total potongan harga
+
             $transaksi->Total_Transaksi = $totalHarga; //Total Harga mainin di bandend dan frontend
 
             if ($transaksi->save()) {
@@ -127,9 +129,61 @@ class TbltransaksiController extends Controller
         return $id;
     }
 
-    public function countTrans()
+    private function countPoin(String $id_trans) //Buat MO
     {
+        $transaksi = tbltransaksi::where('ID_Transaksi', $id_trans)->first();
+        $totalHarga = $transaksi->Total_Transaksi;
+        $poin = 0;
+
         
+        // Setiap pemesanan dengan kelipatan 1.000.000 mendapatkan 200 poin
+        $poin += intdiv($totalHarga, 1000000) * 200;
+        $totalHarga %= 1000000;
+        
+        // Setiap pemesanan dengan kelipatan 500.000 mendapatkan 75 poin.
+        $poin += intdiv($totalHarga, 500000) * 75;
+        $totalHarga %= 500000;
+
+        // Setiap pemesanan dengan kelipatan 100.000 mendapatkan 15 poin.
+        $poin += intdiv($totalHarga, 100000) * 15;
+        $totalHarga %= 100000;
+
+        // Setiap pemesanan dengan kelipatan 10.000 mendapatkan 1 poin.
+        $poin += intdiv($totalHarga, 10000) * 1;
+
+        return $poin;
+    }
+
+    public function reducePoin(Request $request)
+    {
+        $storedData = $request->all();
+
+        $user = Auth::user();
+
+        $validate = Validator::make($storedData, [
+            'Poin' => 'required|integer'
+        ]);
+
+        if ($user->Poin < $storedData['Poin']) {
+            return response([
+                'message' => 'Poin Kurang'
+            ], 400);
+        }
+
+        $user->Poin -= $storedData['Poin'];
+        $user->save();
+
+        if ($user->save()) {
+            return response([
+                'message' => 'Store Poin Success',
+                'data' => $user,
+            ], 200);
+        }
+
+        return response([
+            'message' => 'Update Content Failed',
+            'data' => null 
+        ], 400);
     }
 
 
