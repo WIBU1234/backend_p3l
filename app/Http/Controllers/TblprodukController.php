@@ -318,4 +318,28 @@ class TblprodukController extends Controller
             'data' => null
         ], 400);
     }
+
+    public function getAllProdukForFrontEnd(){
+        try{
+            $produk = tblproduk::all();
+
+            if(count($produk) > 0){
+                return response([
+                    'message' => 'Retrieve All Produk Success',
+                    'data' => $produk
+                ], 200);
+            }
+
+            return response([
+                'message' => 'Empty',
+                'data' => null
+            ], 400);
+        } catch (\Exception $e) {
+            return response([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ], 400);
+        }
+    }
 }

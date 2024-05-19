@@ -25,6 +25,9 @@ Route::post('/registerPegawai', [App\Http\Controllers\AuthController::class, 're
 Route::post('/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 
+Route::get('/kategoriAll', [App\Http\Controllers\TblkategoriController::class, 'getAllKategori']);
+Route::get('/getProductAllForFrontEnd', [App\Http\Controllers\TblprodukController::class, 'getAllProdukForFrontEnd']);
+
 Route::middleware(['auth:api-pegawai', 'role:Admin,Owner,MO'])->group(function () {
     //Rute yang bisa diakses admin&owner&mo
     Route::post('/logoutPegawai', [App\Http\Controllers\AuthController::class, 'logoutPegawai']);
