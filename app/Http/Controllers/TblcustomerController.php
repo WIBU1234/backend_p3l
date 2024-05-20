@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\tblcustomer;
 use App\Models\PasswordReset;
+use App\Models\tbltransaksi;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Notifications\Notifiable;
@@ -363,5 +364,98 @@ class TblcustomerController extends Controller
         }
     }
 
-    
+    public function showAllNeedToPay(){
+        try{
+            if (!Auth::check()) {
+                return response()->json([
+                    'message' => 'Authentication Failed',
+                    'data' => '401',
+                ], 401);
+            }
+
+            $user = Auth::user();
+            $customer = tblcustomer::find($user->ID_Customer)->first();
+
+            if($customer == null){
+                return response()->json([
+                    'message' => 'Customer Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
+            $transaksi = tbltransaksi::where('ID_Customer', $user->ID_Customer)
+                ->where('Status', 'belum dibayar')
+                ->get();
+
+            if($transaksi->isEmpty()){
+                return response()->json([
+                    'message' => 'There is no need items to pay',
+                    'data' => '404',
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Get All Need To Pay Success',
+                'data' => $transaksi,
+            ], 200);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Get All Need To Pay Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function sendImageForPaying(Request $request){
+        try{
+            $request->validate([
+                'ID_Transaksi' => 'required',
+                'Bukti_Pembayaran' => 'required|image|mimes:jpeg,png,jpg|max:2048',                
+            ]);
+
+            $uploadFolder = 'img';
+            $gambarProduk = $request->file('Bukti_Pembayaran');
+            $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
+            $gambarProdukPath = basename($gambarProdukFiles);
+            
+            $user = Auth::user();
+            // $customer = tblcustomer::find($user->ID_Customer)->first();
+            $customer = tblcustomer::where('ID_Customer', $user->ID_Customer)->first();
+
+            if($customer == null){
+                return response()->json([
+                    'message' => 'Customer Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
+            $transaksi = tbltransaksi::where('ID_Transaksi', $request->ID_Transaksi)
+                ->where('ID_Customer', $customer->ID_Customer)
+                ->first();
+            
+            if($transaksi == null){
+                return response()->json([
+                    'message' => 'Transaction Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+            
+            tbltransaksi::where('ID_Transaksi', $request->ID_Transaksi)->update(['Bukti_Pembayaran' => $gambarProdukPath]);
+            $transaksi = tbltransaksi::where('ID_Transaksi', $request->ID_Transaksi)
+                ->where('ID_Customer', $customer->ID_Customer)
+                ->first();
+
+            return response()->json([
+                'message' => 'Send Image For Paying Success',
+                'data' => $transaksi,
+            ], 200);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Send Image For Paying Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
 }

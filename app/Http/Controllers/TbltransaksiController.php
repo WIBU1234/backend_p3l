@@ -217,7 +217,145 @@ class TbltransaksiController extends Controller
         }
     }
 
-    public function MOAcceptTransaction($id){
+    public function MOAcceptTransaction($id) {
+        try {
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+    
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'History Transaksi tidak ditemukan',
+                    'data' => null,
+                ]);
+            }
+
+            if ($transaksi->Status == 'diterima') {
+                return response()->json([
+                    'message' => 'History Transaksi sudah pernah diterima MO',
+                    'data' => null,
+                ]);
+            }
+
+            if ($transaksi->Status != 'pembayaran valid') {
+                return response()->json([
+                    'message' => 'History Transaksi belum dibayarkan',
+                    'data' => null,
+                ]);
+            }
+    
+            $customer = tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->first();
+    
+            if ($customer == null) {
+                return response()->json([
+                    'message' => 'Customer tidak ditemukan || error ID_Customer',
+                    'data' => null,
+                ]);
+            }
+    
+            $total_transaksi = $transaksi->Total_Transaksi;
+            $points = $this->calculatePoints($total_transaksi, $transaksi->Tanggal_Transaksi, $customer->Tanggal_Lahir);
+    
+            $products = tbltransaksi::with([
+                'tbldetailtransaksi.tblproduk' => function($query) {
+                    $query->with([
+                        'tblresep.tbldetailresep',
+                        'tblhampers' => function($query) {
+                            $query->with('tbldetailhampers.tblresep.tbldetailresep');
+                        }
+                    ]);
+                }
+            ])->where('ID_Transaksi', $id)->get();
+    
+            $ingredients = $this->collectIngredients($products);
+    
+            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diterima']);
+            $customer->Poin += $points;
+            $customer->save();
+    
+            return response()->json([
+                'message' => 'Transaksi berhasil diterima',
+                'data' => [
+                    'products' => $products,
+                    'ingredients' => $ingredients,
+                ],
+            ]);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Update Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+    
+    private function calculatePoints($total_transaksi, $transactionDate, $birthday) {
+        $points = 0;
+    
+        if ($total_transaksi >= 1000000) {
+            $points = 200;
+        } elseif ($total_transaksi >= 500000) {
+            $points = 75;
+        } elseif ($total_transaksi >= 100000) {
+            $points = 15;
+        } elseif ($total_transaksi >= 10000) {
+            $points = 1;
+        }
+    
+        $transactionDate = Carbon::parse($transactionDate);
+        $birthday = Carbon::parse($birthday);
+        $startBirthdayPeriod = $birthday->copy()->subDays(3);
+        $endBirthdayPeriod = $birthday->copy()->addDays(3);
+    
+        if ($transactionDate->between($startBirthdayPeriod, $endBirthdayPeriod)) {
+            $points *= 2;
+        }
+    
+        return $points;
+    }
+    
+    private function collectIngredients($products) {
+        $ingredients = [];
+    
+        foreach ($products as $product) {
+            foreach ($product['tbldetailtransaksi'] as $detail) {
+                $tblproduk = $detail['tblproduk'];
+    
+                // Mengumpulkan bahan-bahan dari tblresep
+                if (isset($tblproduk['tblresep'])) {
+                    $ingredients = $this->collectIngredientsFromRecipe($tblproduk['tblresep']['tbldetailresep'], $ingredients);
+                }
+    
+                // Mengumpulkan bahan-bahan dari hampers
+                if (isset($tblproduk['tblhampers'])) {
+                    foreach ($tblproduk['tblhampers']['tbldetailhampers'] as $detailHampers) {
+                        if (isset($detailHampers['tblresep'])) {
+                            $ingredients = $this->collectIngredientsFromRecipe($detailHampers['tblresep']['tbldetailresep'], $ingredients);
+                        }
+                    }
+                }
+            }
+        }
+        return $ingredients;
+    }
+    
+    private function collectIngredientsFromRecipe($recipeDetails, $ingredients) {
+        foreach ($recipeDetails as $resep) {
+            $bahanNama = $resep['Nama_Bahan'];
+            if (isset($ingredients[$bahanNama])) {
+                $ingredients[$bahanNama]['Kuantitas'] += $resep['pivot']['Kuantitas'];
+            } else {
+                $ingredients[$bahanNama] = [
+                    'ID_Bahan_Baku' => $resep['ID_Bahan_Baku'],
+                    'Nama_Bahan' => $bahanNama,
+                    'Stok' => $resep['Stok'],
+                    'Satuan' => $resep['Satuan'],
+                    'Kuantitas' => $resep['pivot']['Kuantitas'],
+                ];
+            }
+        }    
+        return $ingredients;
+    }
+    
+    public function MORejectTransaction($id){
         try{
             $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
 
@@ -237,142 +375,6 @@ class TbltransaksiController extends Controller
 
             $customer = tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->first();
 
-            if($customer == null){
-                return response()->json([
-                    'message' => 'Customer tidak ditemukan || error ID_Customer',
-                    'data' => null,
-                ]);
-            }
-
-            $total_transaksi = $transaksi->Total_Transaksi;
-            $points = 0;
-        
-            if ($total_transaksi >= 1000000) {
-                $points = 200;
-            } elseif ($total_transaksi >= 500000) {
-                $points = 75;
-            } elseif ($total_transaksi >= 100000) {
-                $points = 15;
-            } elseif ($total_transaksi >= 10000) {
-                $points = 1;
-            }
-        
-            $transactionDate = Carbon::parse($transaksi->Tanggal_Transaksi);
-            $birthday = Carbon::parse($customer->Tanggal_Lahir);
-            $startBirthdayPeriod = $birthday->copy()->subDays(3);
-            $endBirthdayPeriod = $birthday->copy()->addDays(3);
-        
-            if ($transactionDate->between($startBirthdayPeriod, $endBirthdayPeriod)) {
-                $points *= 2;
-            }
-        
-            // $products = tbltransaksi::with(['tbldetailtransaksi.tblproduk.tblresep.tbldetailresep'])
-            //             ->where('ID_Transaksi', $id)
-            //             ->get();
-
-            // $products = tbltransaksi::with(['tbldetailtransaksi.tblproduk.tblhampers.tbldetailhampers.tblresep.tbldetailresep'])
-            //             ->where('ID_Transaksi', $id)
-            //             ->get();
-
-            $products = tbltransaksi::with([
-                'tbldetailtransaksi.tblproduk' => function($query) {
-                    $query->with([
-                        'tblresep.tbldetailresep',
-                        'tblhampers' => function($query) {
-                            $query->with('tbldetailhampers.tblresep.tbldetailresep');
-                        }
-                    ]);
-                }
-            ])->where('ID_Transaksi', $id)->get();
-            
-            $ingredients = [];
-            foreach ($products as $product) {
-                foreach ($product['tbldetailtransaksi'] as $detail) {
-                    $tblproduk = $detail['tblproduk'];
-            
-                    // Mengumpulkan bahan-bahan dari tblresep
-                    if (isset($tblproduk['tblresep'])) {
-                        foreach ($tblproduk['tblresep']['tbldetailresep'] as $resep) {
-                            $bahanNama = $resep['Nama_Bahan'];
-                            if (isset($ingredients[$bahanNama])) {
-                                $ingredients[$bahanNama]['Kuantitas'] += $resep['pivot']['Kuantitas'];
-                            } else {
-                                $ingredients[$bahanNama] = [
-                                    'ID_Bahan_Baku' => $resep['ID_Bahan_Baku'],
-                                    'Nama_Bahan' => $bahanNama,
-                                    'Stok' => $resep['Stok'],
-                                    'Satuan' => $resep['Satuan'],
-                                    'Kuantitas' => $resep['pivot']['Kuantitas'],
-                                ];
-                            }
-                        }
-                    }
-            
-                    // Mengumpulkan bahan-bahan dari hampers
-                    if (isset($tblproduk['tblhampers'])) {
-                        foreach ($tblproduk['tblhampers']['tbldetailhampers'] as $detailHampers) {
-                            if (isset($detailHampers['tblresep'])) {
-                                foreach ($detailHampers['tblresep']['tbldetailresep'] as $resep) {
-                                    $bahanNama = $resep['Nama_Bahan'];
-                                    if (isset($ingredients[$bahanNama])) {
-                                        $ingredients[$bahanNama]['Kuantitas'] += $resep['pivot']['Kuantitas'];
-                                    } else {
-                                        $ingredients[$bahanNama] = [
-                                            'ID_Bahan_Baku' => $resep['ID_Bahan_Baku'],
-                                            'Nama_Bahan' => $bahanNama,
-                                            'Stok' => $resep['Stok'],
-                                            'Satuan' => $resep['Satuan'],
-                                            'Kuantitas' => $resep['pivot']['Kuantitas'],
-                                        ];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diterima']);
-            $customer->Poin += $points;
-            $customer->save();
-
-            // Ya Allah kodingan apa yang baru saya buat
-            return response()->json([
-                'message' => 'Transaksi berhasil diterima',
-                'data' => [
-                    'products' => $products,
-                    'ingredients' => $ingredients,
-                ],
-            ]);
-
-        }catch(\Exception $e){
-            return response()->json([
-                'message' => 'Update Transaksi Failed',
-                'data' => $e->getMessage(),
-            ], 400);
-        }
-    }
-
-    public function MORejectTransaction($id){
-        try{
-            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
-
-            if ($transaksi == null) {
-                return response()->json([
-                    'message' => 'History Transaksi tidak ditemukan atau belum dibayar',
-                    'data' => null,
-                ]);
-            }
-
-            if($transaksi->status != 'Pembayaran Valid'){
-                return response()->json([
-                    'message' => 'History Transaksi belum dibayarkan',
-                    'data' => null,
-                ]);
-            }
-
-            $customer = tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->first();
-
             if ($customer == null) {
                 return response()->json([
                     'message' => 'Customer tidak ditemukan || error ID_Customer',
@@ -380,9 +382,9 @@ class TbltransaksiController extends Controller
                 ]);
             } 
 
-            $transaksi->Status = 'ditolak';
-            $customer->Saldo += $transaksi->Total_Pembayaran;
-
+            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'ditolak']);
+            $customer->Saldo += $transaksi->Total_pembayaran;
+            $customer->save();
             $transactionDetails = $transaksi->tbldetailtransaksi;
 
             foreach ($transactionDetails as $detail) {
@@ -394,15 +396,12 @@ class TbltransaksiController extends Controller
                 }
             }
 
-            // $customer->save();
-            // $transaksi->save();
-
             return response()->json([
                 'message' => 'Transaksi berhasil ditolak',
                 'data' => $transaksi,
             ]);
 
-            $transaksi->delete();
+            // $transaksi->delete();
 
         }catch(\Exception $e){
             return response()->json([
