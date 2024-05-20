@@ -18,6 +18,7 @@ class tblcustomer extends Authenticatable
         "email",
         "password",
         "Nomor_telepon",
+        "Tanggal_Lahir",
         "Poin",
         "Saldo",
         "OTP",

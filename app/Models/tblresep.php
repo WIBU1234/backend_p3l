@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use App\Models\tblbahanbaku;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,9 +24,18 @@ class tblresep extends Model
         return $this->belongsTo(tblproduk::class, 'ID_Produk', 'ID_Produk');
     }
 
-    public function hampers(): BelongsToMany
-    {
+    public function hampers(): BelongsToMany {
         return $this->belongsToMany(tblresep::class, 'tbldetailhamper', 'ID_Produk', 'Hampers_ID_Produk')
+            ->withPivot('Kuantitas');
+    }
+
+    public function tblhampers(): BelongsToMany {
+        return $this->belongsToMany(tblresep::class, 'tbldetailhamper', 'ID_Produk', 'Hampers_ID_Produk')
+            ->withPivot('Kuantitas');
+    }
+
+    public function tbldetailresep(): BelongsToMany {
+        return $this->belongsToMany(tblbahanbaku::class, 'tbldetailresep', 'ID_Produk', 'ID_Bahan_Baku')
             ->withPivot('Kuantitas');
     }
 }

@@ -99,6 +99,11 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::get('/searchPenitipByID/{id}', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipById']);
     Route::post('/searchPenitipByNama', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipByNama']);
     Route::post('/productForSpesificPenitip', [App\Http\Controllers\TblpenitipController::class, 'getAllProductByPenitip']);
+
+    Route::get('/getTransactionToday', [App\Http\Controllers\TbltransaksiController::class, 'listofTransactionToday']);
+    Route::get('/getTransactionStatusPayValid', [App\Http\Controllers\TbltransaksiController::class, 'listofTransactionStatusPembayaranValid']);
+    Route::put('/MOAcceptTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOAcceptTransaction']);
+    
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {

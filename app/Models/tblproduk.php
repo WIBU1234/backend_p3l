@@ -27,4 +27,12 @@ class tblproduk extends Model
     {
         return $this->belongsTo(tblkategori::class, 'ID_Kategori', 'ID_Kategori');
     }
+
+    public function tblresep() {
+        return $this->hasOne(tblresep::class, 'ID_Produk', 'ID_Produk');
+    }
+
+    public function tblhampers(){
+        return $this->hasOne(tblhampers::class, 'ID_Produk', 'ID_Produk');
+    }
 }
