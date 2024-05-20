@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class TblcustomerController extends Controller
 {
@@ -440,8 +441,12 @@ class TblcustomerController extends Controller
                     'data' => '404',
                 ], 404);
             }
-            
-            tbltransaksi::where('ID_Transaksi', $request->ID_Transaksi)->update(['Bukti_Pembayaran' => $gambarProdukPath]);
+
+            $cloudinaryImage = $request->file('Bukti_Pembayaran')->storeOnCloudinary('test');
+            $url = $cloudinaryImage->getSecurePath();
+            $public_id = $cloudinaryImage->getPublicId();
+
+            tbltransaksi::where('ID_Transaksi', $request->ID_Transaksi)->update(['Bukti_Pembayaran' => $public_id]);
             $transaksi = tbltransaksi::where('ID_Transaksi', $request->ID_Transaksi)
                 ->where('ID_Customer', $customer->ID_Customer)
                 ->first();
