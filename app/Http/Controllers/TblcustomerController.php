@@ -478,6 +478,13 @@ class TblcustomerController extends Controller
             $cloudinaryController = new cloudinaryController();
             $response = $cloudinaryController->deleteImageFromCloudinary($request->public_id);
 
+            if($response['result'] == 'not found'){
+                return response()->json([
+                    'message' => 'Image Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
             return response()->json([
                 'message' => 'Delete Image Success',
                 'data' => $response,
