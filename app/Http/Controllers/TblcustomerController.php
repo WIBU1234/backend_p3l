@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\tblcustomer;
 use App\Models\PasswordReset;
+use App\Models\tbltransaksi;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Notifications\Notifiable;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class TblcustomerController extends Controller
 {
@@ -315,27 +317,6 @@ class TblcustomerController extends Controller
                 ], 404);
             }
 
-            // $history = $customer->with('tbltransaksi.tbldetailtransaksi.tblproduk')
-            //     ->get()
-            //     ->where('ID_Customer', $id)
-            //     ->flatMap(function ($transaksi) {
-            //         return $transaksi->tbltransaksi->map(function ($detail) {
-            //             return $detail->tbldetailtransaksi->map(function ($produk) use ($detail) {
-            //                 return [
-            //                     'ID_Transaksi' => $produk->ID_Transaksi,
-            //                     'ID_Produk' => $produk->ID_Produk,
-            //                     'Nama_Produk' => $produk->tblproduk->Nama_Produk,
-            //                     'Harga' => $produk->tblproduk->Harga,
-            //                     'Status' => $detail->Status,
-            //                 ];
-            //             });
-            //         });
-            //     })
-            //     ->collapse()
-            //     ->filter(function ($item) {
-            //         return $item['Status'] == 'Selesai';
-            //     });
-
             $history = $customer->with(['tbltransaksi' => function ($query) {
                 $query->where('Status', 'Selesai')
                 ->with('tbldetailtransaksi.tblproduk');
@@ -358,6 +339,152 @@ class TblcustomerController extends Controller
         }catch(\Exception $e){
             return response()->json([
                 'message' => 'Get Customer History Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function showAllNeedToPay(){
+        try{
+            if (!Auth::check()) {
+                return response()->json([
+                    'message' => 'Authentication Failed',
+                    'data' => '401',
+                ], 401);
+            }
+
+            $user = Auth::user();
+            $customer = tblcustomer::find($user->ID_Customer)->first();
+
+            if($customer == null){
+                return response()->json([
+                    'message' => 'Customer Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
+            $transaksi = tbltransaksi::where('ID_Customer', $user->ID_Customer)
+                ->where('Status', 'belum dibayar')
+                ->get();
+
+            if($transaksi->isEmpty()){
+                return response()->json([
+                    'message' => 'There is no need items to pay',
+                    'data' => '404',
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Get All Need To Pay Success',
+                'data' => $transaksi,
+            ], 200);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Get All Need To Pay Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function sendImageForPaying(Request $request){
+        try{
+            $request->validate([
+                'ID_Transaksi' => 'required',
+                'Bukti_Pembayaran' => 'required|image|mimes:jpeg,png,jpg|max:2048',                
+            ]);
+
+            $uploadFolder = 'img';
+            $gambarProduk = $request->file('Bukti_Pembayaran');
+            $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
+            $gambarProdukPath = basename($gambarProdukFiles);
+            
+            $user = Auth::user();
+            // $customer = tblcustomer::find($user->ID_Customer)->first();
+            $customer = tblcustomer::where('ID_Customer', $user->ID_Customer)->first();
+
+            if($customer == null){
+                return response()->json([
+                    'message' => 'Customer Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
+            $transaksi = tbltransaksi::where('ID_Transaksi', $request->ID_Transaksi)
+                ->where('ID_Customer', $customer->ID_Customer)
+                ->first();
+            
+            if($transaksi == null){
+                return response()->json([
+                    'message' => 'Transaction Not Found',
+                    'data' => '404',
+                ], 404);
+            }
+
+            // Testing cloudinary
+            $cloudinaryImage = $request->file('Bukti_Pembayaran')->storeOnCloudinary('test');
+            $url = $cloudinaryImage->getSecurePath();
+            $public_id = $cloudinaryImage->getPublicId();
+
+            tbltransaksi::where('ID_Transaksi', $request->ID_Transaksi)->update(['Bukti_Pembayaran' => $public_id]);
+            $transaksi = tbltransaksi::where('ID_Transaksi', $request->ID_Transaksi)
+                ->where('ID_Customer', $customer->ID_Customer)
+                ->first();
+
+            return response()->json([
+                'message' => 'Send Image For Paying Success',
+                'data' => $transaksi,
+            ], 200);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Send Image For Paying Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function testUpload(Request $request){
+        try{
+            if($request->hasFile('image')) {
+                $image = $request->file('image');
+                $originalName = $image->getClientOriginalName();
+    
+                $cloudinaryController = new cloudinaryController();
+                $public_id = $cloudinaryController->sendImageToCloudinary($image, $originalName);
+
+                return response()->json([
+                    'message' => 'Upload Image Success',
+                    'data' => $public_id,
+                ], 200);
+            }else{
+                return response()->json([
+                    'message' => 'No such File included',
+                ], 401);
+            }
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Upload Image Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function testDelete(Request $request){
+        try{
+            $request->validate([
+                'public_id' => 'required',
+            ]);
+
+            $cloudinaryController = new cloudinaryController();
+            $response = $cloudinaryController->deleteImageFromCloudinary($request->public_id);
+
+            return response()->json([
+                'message' => 'Delete Image Success',
+                'data' => $response,
+            ], 200);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Delete Image Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }

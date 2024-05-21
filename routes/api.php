@@ -25,9 +25,17 @@ Route::post('/registerPegawai', [App\Http\Controllers\AuthController::class, 're
 Route::post('/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 
+Route::get('/kategoriAll', [App\Http\Controllers\TblkategoriController::class, 'getAllKategori']);
+Route::get('/getProductAllForFrontEnd', [App\Http\Controllers\TblprodukController::class, 'getAllProdukForFrontEnd']);
+
 Route::middleware(['auth:api-pegawai', 'role:Admin,Owner,MO'])->group(function () {
     //Rute yang bisa diakses admin&owner&mo
     Route::post('/logoutPegawai', [App\Http\Controllers\AuthController::class, 'logoutPegawai']);
+});
+
+Route::middleware(['auth:api-pegawai', 'role:Admin,MO'])->group(function() {
+    // Rute yang bisa diakses admin$MO
+    Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
@@ -101,14 +109,18 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::post('/presensi', [App\Http\Controllers\TblpresensiController::class, 'store']);
     Route::put('/presensi/{id}', [App\Http\Controllers\TblpresensiController::class, 'update']);
     Route::get('/presensi/{id}', [App\Http\Controllers\TblpresensiController::class, 'show']);
-
-    Route::get('/getPenitipAll', [App\Http\Controllers\TblpenitipController::class, 'index']);
+    
     Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
     Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
     Route::delete('/deletePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'deletePenitip']);
     Route::get('/searchPenitipByID/{id}', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipById']);
     Route::post('/searchPenitipByNama', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipByNama']);
     Route::post('/productForSpesificPenitip', [App\Http\Controllers\TblpenitipController::class, 'getAllProductByPenitip']);
+
+    Route::get('/getTransactionToday', [App\Http\Controllers\TbltransaksiController::class, 'listofTransactionToday']);
+    Route::get('/getTransactionStatusPayValid', [App\Http\Controllers\TbltransaksiController::class, 'listofTransactionStatusPembayaranValid']);
+    Route::put('/MOAcceptTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOAcceptTransaction']);
+    Route::put('/MORejectTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MORejectTransaction']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
@@ -116,11 +128,6 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::get('/customer/history', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiCustomer']);
     Route::get('/customer/history/{nama}', [App\Http\Controllers\TbltransaksiController::class, 'searchDataHistoryTransaksi']);
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
-
-    Route::get('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'index']);
-    Route::post('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'store']);
-    Route::put('/customer/alamat/{id}', [App\Http\Controllers\TblalamatController::class, 'update']);
-    Route::delete('/customer/alamat/{id}', [App\Http\Controllers\TblalamatController::class, 'destroy']);
 });
 
 
@@ -180,3 +187,6 @@ Route::group(['middleware'=>'auth:api-customer'], function() {
 });
 
 Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'index']);
+
+Route::post('/uploadFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testUpload']);
+Route::post('/deleteFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testDelete']);

@@ -25,6 +25,7 @@ class tbltransaksi extends Model
         "Tanggal_Ambil",
         "Total_Pembayaran",
         "Tip",
+        "Bukti_Pembayaran",
     ];
 
     public function tblcustomer() {
