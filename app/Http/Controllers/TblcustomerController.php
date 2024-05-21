@@ -254,7 +254,7 @@ class TblcustomerController extends Controller
             $tblcustomer->update($updatecustomer);
 
             return response()->json([
-                'message' => 'User Updated',
+                'message' => 'Berhasil Mengupdate User ' . $tblcustomer->Nama_Customer,
                 'data' => $tblcustomer
             ], 200);
         } catch (\Exception $e) {

@@ -160,4 +160,118 @@ class TbltransaksiController extends Controller
             ], 400);
         }
     }
+
+    public function getTransaksiOnProcess () {
+        try {
+            $transaksi = tbltransaksi::with('tblpegawai', 'tblcustomer', 'tbljenispengiriman')
+                        ->where('Status', 'Menunggu Pembayaran')
+                        ->where('Total_Pembayaran', '!=' , 0)
+                        ->get();
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message'=> 'Tidak ada transaksi yang sedang berlangsung',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Fetch Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function updateStatusTransaksi ($id) {
+        try {
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'Transaksi Tidak Ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            $transaksi->Status = 'Sedang Diproses';
+            $transaksi->save();
+
+            return response()->json([
+                'message' => 'Update Status Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Update Status Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    } 
+
+    public function showTransaksiNoBayar() {
+        try {
+            $transaksi = tbltransaksi::join('tblalamat', 'tbltransaksi.ID_Alamat', '=', 'tblalamat.ID_Alamat')
+                        ->with('tblpegawai', 'tblcustomer', 'tbljenispengiriman')
+                        ->where('Status', 'Menunggu Pembayaran')
+                        ->where('ID_JenisPengiriman', '!=', 1)
+                        ->where('Total_Bayar', '=', null)
+                        ->orderBy('Tanggal_Transaksi')
+                        ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message'=> 'Tidak ada transaksi yang belum dibayar',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Fetch Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function updateTotalBayarTransaksi ($id) {
+        try {
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'Transaksi Tidak Ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            $biaya = tblalamat::where('ID_Alamat', $transaksi->ID_Alamat)->first();
+            if ($biaya->Biaya == null) {
+                return response()->json([
+                    'message' => 'Biaya Ongkir belum diinputkan',
+                    'data' => null
+                ]);
+            }
+
+            $transaksi->Total_Bayar = $biaya->Biaya + $transaksi->Total_Transaksi;
+            $transaksi->save();
+
+            return response()->json([
+                'message' => 'Update Total Bayar Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Update Total Bayar Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
 }

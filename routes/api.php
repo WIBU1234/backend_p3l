@@ -63,6 +63,17 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::get('/customerHistory/{id}', [App\Http\Controllers\TblcustomerController::class, 'getCustomerHistory']);
     Route::get('/customerAddress/{id}', [App\Http\Controllers\TblalamatController::class, 'getSpesificAddressByIdUser']);
     Route::get('/customerTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiToProduk']);
+
+    Route::get('/alamat', [App\Http\Controllers\TblalamatController::class, 'ShowAllAlamat']);
+    Route::get('/alamat/no-jarak', [App\Http\Controllers\TblalamatController::class, 'ShowAllAlamatWithNoJarak']);
+    Route::get('/alamat/{idC}/{idA}', [App\Http\Controllers\TblalamatController::class, 'ShowOneAlamat']);
+    Route::put('/update-jarak-biaya/{idC}/{idA}', [App\Http\Controllers\TblalamatController::class, 'updateJarakBiaya']);
+
+    Route::get('/confirm-transaksi', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiOnProcess']);
+    Route::put('/confirm-transaksi/{id}', [App\Http\Controllers\TbltransaksiController::class, 'updateStatusTransaksi']);
+
+    Route::get('/transaksi-total-bayar', [App\Http\Controllers\TbltransaksiController::class, 'showTransaksiNoBayar']);
+    Route::put('/transaksi-total-bayar/{id}', [App\Http\Controllers\TbltransaksiController::class, 'updateTotalBayarTransaksi']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
@@ -105,6 +116,11 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::get('/customer/history', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiCustomer']);
     Route::get('/customer/history/{nama}', [App\Http\Controllers\TbltransaksiController::class, 'searchDataHistoryTransaksi']);
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
+
+    Route::get('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'index']);
+    Route::post('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'store']);
+    Route::put('/customer/alamat/{id}', [App\Http\Controllers\TblalamatController::class, 'update']);
+    Route::delete('/customer/alamat/{id}', [App\Http\Controllers\TblalamatController::class, 'destroy']);
 });
 
 
@@ -153,7 +169,6 @@ Route::group(['middleware'=>'auth:api-customer'], function() {
     Route::put('/customer/{id}', [App\Http\Controllers\TblcustomerController::class, 'update']);
     Route::post('/customer', [App\Http\Controllers\TblcustomerController::class, 'updateProfile']);
     
-   
     Route::post('/customer/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']); // cmn testing buat show history
 
     Route::post('/customer/detail-transaksi', [App\Http\Controllers\TbldetailtransaksiController::class, 'store']); // cmn testing buat show history
