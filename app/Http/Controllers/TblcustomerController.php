@@ -317,27 +317,6 @@ class TblcustomerController extends Controller
                 ], 404);
             }
 
-            // $history = $customer->with('tbltransaksi.tbldetailtransaksi.tblproduk')
-            //     ->get()
-            //     ->where('ID_Customer', $id)
-            //     ->flatMap(function ($transaksi) {
-            //         return $transaksi->tbltransaksi->map(function ($detail) {
-            //             return $detail->tbldetailtransaksi->map(function ($produk) use ($detail) {
-            //                 return [
-            //                     'ID_Transaksi' => $produk->ID_Transaksi,
-            //                     'ID_Produk' => $produk->ID_Produk,
-            //                     'Nama_Produk' => $produk->tblproduk->Nama_Produk,
-            //                     'Harga' => $produk->tblproduk->Harga,
-            //                     'Status' => $detail->Status,
-            //                 ];
-            //             });
-            //         });
-            //     })
-            //     ->collapse()
-            //     ->filter(function ($item) {
-            //         return $item['Status'] == 'Selesai';
-            //     });
-
             $history = $customer->with(['tbltransaksi' => function ($query) {
                 $query->where('Status', 'Selesai')
                 ->with('tbldetailtransaksi.tblproduk');
@@ -510,7 +489,4 @@ class TblcustomerController extends Controller
             ], 400);
         }
     }
-
-
-
 }
