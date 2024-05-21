@@ -174,3 +174,6 @@ Route::group(['middleware'=>'auth:api-customer'], function() {
 });
 
 Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'index']);
+
+Route::post('/uploadFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testUpload']);
+Route::post('/deleteFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testDelete']);

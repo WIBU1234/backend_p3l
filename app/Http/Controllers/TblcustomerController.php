@@ -442,6 +442,7 @@ class TblcustomerController extends Controller
                 ], 404);
             }
 
+            // Testing cloudinary
             $cloudinaryImage = $request->file('Bukti_Pembayaran')->storeOnCloudinary('test');
             $url = $cloudinaryImage->getSecurePath();
             $public_id = $cloudinaryImage->getPublicId();
@@ -462,5 +463,54 @@ class TblcustomerController extends Controller
             ], 400);
         }
     }
+
+    public function testUpload(Request $request){
+        try{
+            if($request->hasFile('image')) {
+                $image = $request->file('image');
+                $originalName = $image->getClientOriginalName();
+    
+                $cloudinaryController = new cloudinaryController();
+                $public_id = $cloudinaryController->sendImageToCloudinary($image, $originalName);
+
+                return response()->json([
+                    'message' => 'Upload Image Success',
+                    'data' => $public_id,
+                ], 200);
+            }else{
+                return response()->json([
+                    'message' => 'No such File included',
+                ], 401);
+            }
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Upload Image Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function testDelete(Request $request){
+        try{
+            $request->validate([
+                'public_id' => 'required',
+            ]);
+
+            $cloudinaryController = new cloudinaryController();
+            $response = $cloudinaryController->deleteImageFromCloudinary($request->public_id);
+
+            return response()->json([
+                'message' => 'Delete Image Success',
+                'data' => $response,
+            ], 200);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Delete Image Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+
 
 }
