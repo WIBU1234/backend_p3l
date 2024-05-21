@@ -173,7 +173,7 @@ Route::get('/jabatan', [App\Http\Controllers\TbljabatanController::class, 'index
 
 Route::group(['middleware'=>'auth:api-customer'], function() {
     Route::get('/customer', [App\Http\Controllers\TblcustomerController::class, 'index']);
-    Route::put('/customer/{id}', [App\Http\Controllers\TblcustomerController::class, 'update']);
+    Route::put('/update-customer', [App\Http\Controllers\TblcustomerController::class, 'update']);
     Route::post('/customer', [App\Http\Controllers\TblcustomerController::class, 'updateProfile']);
     
     Route::post('/customer/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']); // cmn testing buat show history
