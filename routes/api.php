@@ -63,6 +63,7 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::put('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'update']);
     Route::delete('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'destroy']);
 
+    
     Route::get('/customerGetAll', [App\Http\Controllers\TblcustomerController::class, 'getAllCustomer']);
     Route::post('/customerSearch', [App\Http\Controllers\TblcustomerController::class, 'searchGetCustomer']);
     Route::get('/customerHistory/{id}', [App\Http\Controllers\TblcustomerController::class, 'getCustomerHistory']);
@@ -106,6 +107,7 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     //rute yang cuma bisa diakses customer
     Route::get('/produk-customer', [App\Http\Controllers\TblprodukController::class, 'index']);
     Route::get('/produk/on-date/{date}', [App\Http\Controllers\TblprodukController::class, 'showProductByTglAmbil']);
+    Route::get('/produk-customer/{id}', [App\Http\Controllers\TblprodukController::class, 'show']);
 
     // Mengurangi stok dan kuota berdasarkan id transaksinya (Not Done)
     Route::post('/reduce-stok/{id_trans}', [App\Http\Controllers\TblprodukController::class, 'reduceStok']);
@@ -119,6 +121,7 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::post('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']);
 
     Route::post('/reduce-poin', [App\Http\Controllers\TbltransaksiController::class, 'reducePoin']);
+    Route::post('/update-poin', [App\Http\Controllers\TblcustomerController::class, 'updatePoin']);
 
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
 });

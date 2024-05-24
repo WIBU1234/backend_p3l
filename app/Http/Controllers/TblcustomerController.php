@@ -107,6 +107,28 @@ class TblcustomerController extends Controller
         }
     }
 
+    public function updatePoin(Request $request) {
+        $user = Auth::user();
+        $storedData = $request->all();
+        try {
+            $validate = Validator::make($storedData, [
+                'Poin' => 'required'
+            ]);
+            $user->Poin = $storedData['Poin'];
+            if ($user->save()) {
+                return response([
+                    'message' => 'Store Transaksi Success',
+                    'data' => $user,
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Store Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     public function resetPassword(Request $request){
         try{
             $request->validate([

@@ -18,7 +18,7 @@ class TblprodukController extends Controller
 {
     public function index()
     {
-        $produk = tblproduk::all();
+        $produk = tblproduk::with(['kategori'])->get();
 
         if(count($produk) > 0) {
             return response([
