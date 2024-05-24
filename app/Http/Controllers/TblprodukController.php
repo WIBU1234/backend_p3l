@@ -55,11 +55,16 @@ class TblprodukController extends Controller
             }
 
             // upload gambar produk pada public/img disimpan path nya
-            $uploadFolder = 'img';
+            //$uploadFolder = 'img';
             $gambarProduk = $request->file('Gambar');
+            $originalName = $gambarProduk->getClientOriginalName();
 
-            $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
-            $gambarProdukPath = basename($gambarProdukFiles);
+            $cloudinaryController = new cloudinaryController();
+            $public_id = $cloudinaryController->sendImageToCloudinary($gambarProduk, $originalName);
+
+
+            //$gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
+            //$gambarProdukPath = basename($gambarProdukFiles);
 
             // pengaturan nilai stok dan stokready
             $stok = $request->has('Stok') ? $request->Stok : 0;
@@ -75,7 +80,7 @@ class TblprodukController extends Controller
                 'Harga' => $request->Harga,
                 'Stok' => $stok,
                 'StokReady' => $StokReady,
-                'Gambar' => $gambarProdukPath
+                'Gambar' => $public_id
             ]);
 
             return response([
@@ -112,11 +117,15 @@ class TblprodukController extends Controller
             }
 
             // upload gambar produk pada public/img disimpan path nya
-            $uploadFolder = 'img';
+            //$uploadFolder = 'img';
             $gambarProduk = $request->file('Gambar');
+            $originalName = $gambarProduk->getClientOriginalName();
 
-            $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
-            $gambarProdukPath = basename($gambarProdukFiles);
+            $cloudinaryController = new cloudinaryController();
+            $public_id = $cloudinaryController->sendImageToCloudinary($gambarProduk, $originalName);
+
+            // $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
+            // $gambarProdukPath = basename($gambarProdukFiles);
 
             // pengaturan nilai stok dan stokready
             //$stok = $request->has('Stok') ? $request->Stok : 0;
@@ -132,7 +141,7 @@ class TblprodukController extends Controller
                 'Harga' => $request->Harga,
                 'Stok' => $request->Stok,
                 'StokReady' => $StokReady,
-                'Gambar' => $gambarProdukPath
+                'Gambar' => $public_id
             ]);
 
             return response([
@@ -169,11 +178,15 @@ class TblprodukController extends Controller
             }
 
             // upload gambar produk pada public/img disimpan path nya
-            $uploadFolder = 'img';
+            //$uploadFolder = 'img';
             $gambarProduk = $request->file('Gambar');
+            $originalName = $gambarProduk->getClientOriginalName();
 
-            $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
-            $gambarProdukPath = basename($gambarProdukFiles);
+            $cloudinaryController = new cloudinaryController();
+            $public_id = $cloudinaryController->sendImageToCloudinary($gambarProduk, $originalName);
+
+            // $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
+            // $gambarProdukPath = basename($gambarProdukFiles);
 
             // pengaturan nilai stok dan stokready
             $stok = $request->has('Stok') ? $request->Stok : 0;
@@ -189,7 +202,7 @@ class TblprodukController extends Controller
                 'Harga' => $request->Harga,
                 'Stok' => $stok,
                 'StokReady' => $StokReady,
-                'Gambar' => $gambarProdukPath
+                'Gambar' => $public_id
             ]);
 
             return response([
@@ -456,6 +469,9 @@ class TblprodukController extends Controller
     public function destroy(string $id)
     {
         $produk = tblproduk::find($id);
+        $cloudinaryController = new cloudinaryController();
+        $response = $cloudinaryController->deleteImageFromCloudinary($produk->Gambar);
+
 
         if (is_null($produk)) {
             return response([
@@ -467,6 +483,7 @@ class TblprodukController extends Controller
         if ($produk->delete()) {
             return response([
                 'message' => 'Delete produk Success',
+                'image_status' => $response,
                 'data' => $produk
             ], 200);
         }
