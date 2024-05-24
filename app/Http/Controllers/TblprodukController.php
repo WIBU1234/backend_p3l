@@ -342,4 +342,28 @@ class TblprodukController extends Controller
             ], 400);
         }
     }
+
+    public function pickRandomFourProduct(){
+        try{
+            $produk = tblproduk::with('tblkategori')->get()->random(4);
+
+            if(count($produk) > 0){
+                return response([
+                    'message' => 'Retrieve Random Four Produk Success',
+                    'data' => $produk
+                ], 200);
+            }
+
+            return response([
+                'message' => 'Empty',
+                'data' => null
+            ], 400);
+        } catch (\Exception $e) {
+            return response([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ], 400);
+        }
+    }
 }

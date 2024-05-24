@@ -177,3 +177,5 @@ Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'i
 
 Route::post('/uploadFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testUpload']);
 Route::post('/deleteFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testDelete']);
+
+Route::get('/getRandomProduct', [App\Http\Controllers\TblprodukController::class, 'pickRandomFourProduct']);
