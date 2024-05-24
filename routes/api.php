@@ -25,6 +25,9 @@ Route::post('/registerPegawai', [App\Http\Controllers\AuthController::class, 're
 Route::post('/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 
+Route::get('/kategoriAll', [App\Http\Controllers\TblkategoriController::class, 'getAllKategori']);
+Route::get('/getProductAllForFrontEnd', [App\Http\Controllers\TblprodukController::class, 'getAllProdukForFrontEnd']);
+
 Route::middleware(['auth:api-pegawai', 'role:Admin,Owner,MO'])->group(function () {
     //Rute yang bisa diakses admin&owner&mo
     Route::post('/logoutPegawai', [App\Http\Controllers\AuthController::class, 'logoutPegawai']);
@@ -101,6 +104,11 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::get('/searchPenitipByID/{id}', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipById']);
     Route::post('/searchPenitipByNama', [App\Http\Controllers\TblpenitipController::class, 'searchPenitipByNama']);
     Route::post('/productForSpesificPenitip', [App\Http\Controllers\TblpenitipController::class, 'getAllProductByPenitip']);
+
+    Route::get('/getTransactionToday', [App\Http\Controllers\TbltransaksiController::class, 'listofTransactionToday']);
+    Route::get('/getTransactionStatusPayValid', [App\Http\Controllers\TbltransaksiController::class, 'listofTransactionStatusPembayaranValid']);
+    Route::put('/MOAcceptTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOAcceptTransaction']);
+    Route::put('/MORejectTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MORejectTransaction']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
@@ -124,6 +132,9 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::post('/update-poin', [App\Http\Controllers\TblcustomerController::class, 'updatePoin']);
 
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
+
+    Route::get('/customerUnPayed', [App\Http\Controllers\TblcustomerController::class, 'showAllNeedToPay']);
+    Route::post('/sendImageForPaying', [App\Http\Controllers\TblcustomerController::class, 'sendImageForPaying']);
 });
 
 Route::get('/detail-transaksi-bahan', [App\Http\Controllers\TbldetailtransaksibahanbakuController::class, 'index']);
@@ -183,3 +194,5 @@ Route::group(['middleware'=>'auth:api-customer'], function() {
     Route::post('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'store']);
 });
 
+Route::post('/uploadFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testUpload']);
+Route::post('/deleteFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testDelete']);
