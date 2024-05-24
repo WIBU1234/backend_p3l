@@ -48,8 +48,8 @@ class TbltransaksiController extends Controller
             $pegawai = tblpegawai::where('ID_Jabatan', 2)->first();
             
             $validate = Validator::make($storeTransaksi, [
-                'ID_Alamat' => 'required',
-                'Tanggal_Ambil' => 'required',
+                'products' => 'required',
+                'Total_Transaksi' => 'required',
             ]);
 
             if($validate->fails()) {
@@ -62,12 +62,12 @@ class TbltransaksiController extends Controller
             $storeTransaksi['ID_Transaksi'] = $this->generateIDTrans();
             $storeTransaksi['ID_Customer'] = $user->ID_Customer;
             $storeTransaksi['ID_Pegawai'] = $pegawai->ID_Pegawai;
+            $storeTransaksi['ID_Alamat'] = 11;
             $storeTransaksi['Status'] = 'Menunggu Pembayaran';
             $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
             $storeTransaksi['Total_Pembayaran'] = 0;
 
             $transaksi = tbltransaksi::create($storeTransaksi);
-            $totalHarga = 0;
 
             if($request->has('products')) {
                 $products = $request->input('products');
@@ -78,16 +78,10 @@ class TbltransaksiController extends Controller
                         'Kuantitas' => $data['Kuantitas'],
                         'Sub_Total' => $data['Sub_Total'] //Butuh fungsi autogenerate hitung sub_total
                     ];
-
-                    $totalHarga += $data['Sub_Total'];
                 }
 
                 $transaksi->products()->attach($productsData);
             }
-
-            //Di Front End bakal ada field hidden buat nampung total potongan harga
-
-            $transaksi->Total_Transaksi = $totalHarga; //Total Harga mainin di bandend dan frontend
 
             if ($transaksi->save()) {
                 return response([
