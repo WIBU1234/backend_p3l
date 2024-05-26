@@ -410,4 +410,85 @@ class TbltransaksiController extends Controller
             ], 400);
         }
     }
+
+    public function getTransaksiByIdCustomer($id){
+        try{
+            $date = Carbon::now();
+
+            $transaksi = tbltransaksi::with(['tblAlamat', 'tbldetailtransaksi.tblproduk', 'tblcustomer'])
+                ->where('ID_Customer', $id)
+                ->where('Status', 'Menunggu Pembayaran')
+                ->whereDate('Tanggal_Transaksi', '<', $date)
+                ->orderBy('Tanggal_Transaksi', 'asc')
+                ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Transaksi tidak ditemukan',
+                    'data' => null,
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Transaksi berhasil diambil',
+                'data' => $transaksi,
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function sendProofPayment(request $request){
+        try{
+            $user = Auth::user();
+            $validator = Validator::make($request->all(), [
+                'ID_Customer' => 'required',
+                'ID_Transaksi' => 'required',
+                'Bukti_Pembayaran' => 'required|image|max:2048',
+                'Total_pembayaran' => 'required|numeric',
+            ]);
+    
+            if($validator->fails()) {
+                return response([
+                    'message' => $validator->errors(),
+                    'status' => 404
+                ], 404);
+            }
+
+            $IDTransaksi = $request->ID_Transaksi;
+            $totalPembayaranInput = $request->Total_pembayaran;
+            $transaksi = tbltransaksi::get()->where('ID_Transaksi', $IDTransaksi)->first();
+
+            if($transaksi == null){
+                return response([
+                    'message' => "Transaksi tidak ditemukan",
+                    'status' => 404
+                ], 404);
+            }
+
+            $image = $request->file('Bukti_Pembayaran');
+            $originalName = $image->getClientOriginalName();
+            $cloudinaryController = new cloudinaryController();
+            $public_id = $cloudinaryController->sendImageToCloudinary($image, $originalName);
+
+            tbltransaksi::where('ID_Transaksi', $IDTransaksi)->update([
+                'Bukti_Pembayaran' => $public_id,
+                'Total_pembayaran' => $totalPembayaranInput,
+            ]);
+
+            return response([
+                'message' => 'Bukti Pembayaran berhasil dikirim',
+                'status' => 200,
+                'data' => $transaksi
+            ], 200);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Sending proof failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
 }
