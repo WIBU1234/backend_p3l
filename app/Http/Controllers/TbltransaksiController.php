@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\tblalamat;
+use App\Models\tblpenggunaanbahanbaku;
 use App\Models\tblproduk;
 use App\Models\tbltransaksi;
 use App\Models\tblcustomer;
@@ -193,8 +193,9 @@ class TbltransaksiController extends Controller
 
     public function listofTransactionStatusPembayaranValid(){
         try{
-            $transaksi = tbltransaksi::with(['tbldetailtransaksi.tblproduk'])
+            $transaksi = tbltransaksi::with(['tblcustomer'])
                             ->where('Status', 'Pembayaran Valid')
+                            ->orderBy('Tanggal_Transaksi', 'asc')
                             ->get();
 
             if ($transaksi->count() == 0) {
@@ -235,7 +236,7 @@ class TbltransaksiController extends Controller
                 ]);
             }
 
-            if ($transaksi->Status != 'pembayaran valid') {
+            if ($transaksi->Status != 'Pembayaran Valid') {
                 return response()->json([
                     'message' => 'History Transaksi belum dibayarkan',
                     'data' => null,
@@ -266,7 +267,15 @@ class TbltransaksiController extends Controller
             ])->where('ID_Transaksi', $id)->get();
     
             $ingredients = $this->collectIngredients($products);
-    
+
+            foreach ($ingredients as $ingredient) {
+                tblpenggunaanbahanbaku::create([
+                    'ID_Bahan_Baku' => $ingredient['ID_Bahan_Baku'],
+                    'Kuantitas' => $ingredient['Kuantitas'],
+                    'Tanggal' => Carbon::now(),
+                ]);
+            }
+
             tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diterima']);
             $customer->Poin += $points;
             $customer->save();
@@ -286,7 +295,71 @@ class TbltransaksiController extends Controller
             ], 400);
         }
     }
+
+    public function getAllIngredientsAndProduct($id){
+        try{
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
     
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'History Transaksi tidak ditemukan',
+                    'data' => null,
+                ]);
+            }
+
+            if ($transaksi->Status == 'diterima') {
+                return response()->json([
+                    'message' => 'History Transaksi sudah pernah diterima MO',
+                    'data' => null,
+                ]);
+            }
+
+            if ($transaksi->Status != 'Pembayaran Valid') {
+                return response()->json([
+                    'message' => 'History Transaksi belum dibayarkan',
+                    'data' => null,
+                ]);
+            }
+    
+            $customer = tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->first();
+    
+            if ($customer == null) {
+                return response()->json([
+                    'message' => 'Customer tidak ditemukan || error ID_Customer',
+                    'data' => null,
+                ]);
+            }
+    
+            $total_transaksi = $transaksi->Total_Transaksi;
+    
+            $products = tbltransaksi::with([
+                'tbldetailtransaksi.tblproduk' => function($query) {
+                    $query->with([
+                        'tblresep.tbldetailresep',
+                        'tblhampers' => function($query) {
+                            $query->with('tbldetailhampers.tblresep.tbldetailresep');
+                        }
+                    ]);
+                }
+            ])->where('ID_Transaksi', $id)->get();
+    
+            $ingredients = $this->collectIngredients($products);
+    
+            return response()->json([
+                'message' => 'Transaksi berhasil diterima',
+                'data' => [
+                    'products' => $products,
+                    'ingredients' => $ingredients,
+                ],
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     private function calculatePoints($total_transaksi, $transactionDate, $birthday) {
         $points = 0;
     
@@ -314,21 +387,23 @@ class TbltransaksiController extends Controller
     
     private function collectIngredients($products) {
         $ingredients = [];
-    
+        
         foreach ($products as $product) {
             foreach ($product['tbldetailtransaksi'] as $detail) {
                 $tblproduk = $detail['tblproduk'];
-    
+                $kuantitasProduk = $detail['Kuantitas'];
+                
                 // Mengumpulkan bahan-bahan dari tblresep
                 if (isset($tblproduk['tblresep'])) {
-                    $ingredients = $this->collectIngredientsFromRecipe($tblproduk['tblresep']['tbldetailresep'], $ingredients);
+                    $ingredients = $this->collectIngredientsFromRecipe($tblproduk['tblresep']['tbldetailresep'], $ingredients, $kuantitasProduk);
                 }
-    
+                
                 // Mengumpulkan bahan-bahan dari hampers
                 if (isset($tblproduk['tblhampers'])) {
                     foreach ($tblproduk['tblhampers']['tbldetailhampers'] as $detailHampers) {
+                        $kuantitasForHampers = $kuantitasProduk * $detailHampers['Kuantitas'];
                         if (isset($detailHampers['tblresep'])) {
-                            $ingredients = $this->collectIngredientsFromRecipe($detailHampers['tblresep']['tbldetailresep'], $ingredients);
+                            $ingredients = $this->collectIngredientsFromRecipe($detailHampers['tblresep']['tbldetailresep'], $ingredients, $kuantitasForHampers);
                         }
                     }
                 }
@@ -337,23 +412,26 @@ class TbltransaksiController extends Controller
         return $ingredients;
     }
     
-    private function collectIngredientsFromRecipe($recipeDetails, $ingredients) {
+    private function collectIngredientsFromRecipe($recipeDetails, $ingredients, $kuantitasProduk) {
         foreach ($recipeDetails as $resep) {
             $bahanNama = $resep['Nama_Bahan'];
+            $kuantitasBahan = $resep['pivot']['Kuantitas'] * $kuantitasProduk;
+            
             if (isset($ingredients[$bahanNama])) {
-                $ingredients[$bahanNama]['Kuantitas'] += $resep['pivot']['Kuantitas'];
+                $ingredients[$bahanNama]['Kuantitas'] += $kuantitasBahan;
             } else {
                 $ingredients[$bahanNama] = [
                     'ID_Bahan_Baku' => $resep['ID_Bahan_Baku'],
                     'Nama_Bahan' => $bahanNama,
                     'Stok' => $resep['Stok'],
                     'Satuan' => $resep['Satuan'],
-                    'Kuantitas' => $resep['pivot']['Kuantitas'],
+                    'Kuantitas' => $kuantitasBahan,
                 ];
             }
-        }    
+        }
         return $ingredients;
     }
+    
     
     public function MORejectTransaction($id){
         try{

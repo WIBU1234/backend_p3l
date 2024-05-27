@@ -104,6 +104,7 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::get('/getTransactionStatusPayValid', [App\Http\Controllers\TbltransaksiController::class, 'listofTransactionStatusPembayaranValid']);
     Route::put('/MOAcceptTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOAcceptTransaction']);
     Route::put('/MORejectTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MORejectTransaction']);
+    Route::get('/getAllIngredientsAndProduct/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getAllIngredientsAndProduct']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
