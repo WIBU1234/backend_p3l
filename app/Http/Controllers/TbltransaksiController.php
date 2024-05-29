@@ -148,7 +148,7 @@ class TbltransaksiController extends Controller
             $storeTransaksi['Status'] = 'Menunggu Pembayaran';
             $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
             $storeTransaksi['Tanggal_Ambil'] = $today;
-            $storeTransaksi['Total_Pembayaran'] = 0;
+            $storeTransaksi['Total_Pembayaran'] = 1;
 
             $transaksi = tbltransaksi::create($storeTransaksi);
             if ($request->has('products')) {
@@ -163,7 +163,6 @@ class TbltransaksiController extends Controller
                         'Kuantitas' => $data['Kuantitas'],
                         'Sub_Total' => $data['Sub_Total'] 
                     ];
-                        //$this->deleteReadyStock($data['ID_Produk'], $data['Kuantitas']);
                 }
     
                 foreach ($productsData as $data) {
