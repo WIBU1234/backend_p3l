@@ -42,4 +42,28 @@ class TbldetailtransaksiController extends Controller
             ], 500);
         }
     }
+
+    public function ShowDetailTransaksi($id) {
+        try {
+            $detailTransaksi = tbldetailtransaksi::with('tblproduk')->where('ID_Transaksi', $id)->get();
+
+            if ($detailTransaksi->count() == 0) {
+                return response([
+                    'message' => 'Detail Transaksi Tidak Ditemukan',
+                    'status' => 404
+                ], 404);
+            } else {
+                return response([
+                    'message' => 'Detail Transaksi Ditemukan',
+                    'data' => $detailTransaksi,
+                    'status' => 200
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response([
+                'message' => 'Error ' . $e->getMessage(),
+                'status' => 500
+            ], 500);
+        }
+    }
 }

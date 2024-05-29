@@ -172,8 +172,8 @@ class TblalamatController extends Controller
         try {
             $alamat = tblalamat::join('tblcustomer', 'tblalamat.ID_Customer', '=', 'tblcustomer.ID_Customer')
                     ->join('tbltransaksi', 'tblalamat.ID_Alamat', '=', 'tbltransaksi.ID_Alamat')
-                    ->where('tbltransaksi.Status', '=', 'Menunggu Pembayaran')
-                    ->where('tblalamat.Jarak', '=' , null)
+                    ->where('tbltransaksi.Status', '=', 'Menunggu Konfirmasi Admin')
+                    ->where('tblalamat.Jarak', '=' , 0)
                     ->with('tblcustomer')
                     ->orderBy('tblcustomer.Nama_Customer')
                     ->get();
