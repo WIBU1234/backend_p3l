@@ -87,12 +87,6 @@ class TbltransaksiController extends Controller
                         'Kuantitas' => $data['Kuantitas'],
                         'Sub_Total' => $data['Sub_Total'] 
                     ];
-
-                    //dd($storeTransaksi['Tanggal_Ambil'], $lusa);
-
-                    if ($storeTransaksi['Tanggal_Ambil'] === $lusa) {
-                        $this->deleteStock($data['ID_Produk'], $data['Kuantitas']);
-                    }
                 }
     
                 foreach ($productsData as $data) {
@@ -169,8 +163,7 @@ class TbltransaksiController extends Controller
                         'Kuantitas' => $data['Kuantitas'],
                         'Sub_Total' => $data['Sub_Total'] 
                     ];
-
-                        $this->deleteReadyStock($data['ID_Produk'], $data['Kuantitas']);
+                        //$this->deleteReadyStock($data['ID_Produk'], $data['Kuantitas']);
                 }
     
                 foreach ($productsData as $data) {
@@ -207,9 +200,7 @@ class TbltransaksiController extends Controller
             return;
         } 
 
-        if ($produk->ID_Kategori !== 4) {
-            $produk->Stok -= $quantity;
-        } else {
+        if ($produk->ID_Kategori === 4) {
             $produk->StokReady -= $quantity;
         }
 
