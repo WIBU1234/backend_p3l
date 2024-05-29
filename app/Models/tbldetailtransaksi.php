@@ -15,6 +15,7 @@ class tbldetailtransaksi extends Model
         "ID_Produk",
         "Kuantitas",
         "Sub_Total",
+        "Tipe",
     ];
 
     public function tbltransaksi() {

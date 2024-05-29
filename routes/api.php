@@ -127,9 +127,12 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::get('/detail-transaksi', [App\Http\Controllers\TbldetailtransaksiController::class, 'index']);
     Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'index']);
     Route::post('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']);
+    Route::post('/transaksi-ready', [App\Http\Controllers\TbltransaksiController::class, 'storeReady']);
 
-    Route::post('/reduce-poin', [App\Http\Controllers\TbltransaksiController::class, 'reducePoin']);
-    Route::post('/update-poin', [App\Http\Controllers\TblcustomerController::class, 'updatePoin']);
+    Route::put('/reduce-poin', [App\Http\Controllers\TbltransaksiController::class, 'reducePoin']);
+    Route::put('/update-poin', [App\Http\Controllers\TblcustomerController::class, 'updatePoin']);
+
+    Route::get('/kategori', [App\Http\Controllers\TblkategoriController::class, 'getAllKategori']);
 
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
 
@@ -137,6 +140,7 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::post('/sendImageForPaying', [App\Http\Controllers\TblcustomerController::class, 'sendImageForPaying']);
 });
 
+Route::get('/produk-today', [App\Http\Controllers\TblprodukController::class, 'showProductToday']);
 Route::get('/detail-transaksi-bahan', [App\Http\Controllers\TbldetailtransaksibahanbakuController::class, 'index']);
 
 

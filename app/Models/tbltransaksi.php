@@ -46,6 +46,6 @@ class tbltransaksi extends Model
     public function products() : BelongsToMany 
     {
         return $this->belongsToMany(tblproduk::class, 'tbldetailtransaksi', 'ID_Transaksi', 'ID_Produk')
-            ->withPivot('Kuantitas', 'Sub_Total');
+            ->withPivot('Kuantitas', 'Sub_Total', 'Tipe');
     }
 }

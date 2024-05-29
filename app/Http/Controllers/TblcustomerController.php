@@ -116,7 +116,16 @@ class TblcustomerController extends Controller
             $validate = Validator::make($storedData, [
                 'Poin' => 'required'
             ]);
+
+            if($validate->fails()) {
+                return response([
+                    'message' => $validate->errors(),
+                    'status' => 404
+                ], 404);
+            } 
+
             $user->Poin = $storedData['Poin'];
+            
             if ($user->save()) {
                 return response([
                     'message' => 'Store Transaksi Success',

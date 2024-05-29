@@ -43,6 +43,8 @@ class TbltransaksiController extends Controller
 
     public function store(request $request) {
         try {
+            $lusa = Carbon::now()->addDays(2)->format('Y-m-d');
+
             $user = Auth::user();
 
             $storeTransaksi = $request->all();
@@ -51,7 +53,9 @@ class TbltransaksiController extends Controller
             $pegawai = tblpegawai::where('ID_Jabatan', 2)->first();
             
             $validate = Validator::make($storeTransaksi, [
+                'Poin' => 'required',
                 'products' => 'required',
+                'Tanggal_Ambil' => 'required',
                 'Total_Transaksi' => 'required',
             ]);
 
@@ -71,24 +75,41 @@ class TbltransaksiController extends Controller
             $storeTransaksi['Total_Pembayaran'] = 0;
 
             $transaksi = tbltransaksi::create($storeTransaksi);
-
-            if($request->has('products')) {
+            if ($request->has('products')) {
                 $products = $request->input('products');
-
+    
                 $productsData = [];
-                foreach ($products as $data) {
-                    $productsData[$data['ID_Produk']] = [
+                foreach ($products as $index => $data) {
+                    
+                    $productsData[$index] = [
+                        'ID_Produk' => $data['ID_Produk'],
+                        'Tipe' => $data['Tipe'],
                         'Kuantitas' => $data['Kuantitas'],
-                        'Sub_Total' => $data['Sub_Total'] //Butuh fungsi autogenerate hitung sub_total
+                        'Sub_Total' => $data['Sub_Total'] 
                     ];
-                }
 
-                $transaksi->products()->attach($productsData);
+                    //dd($storeTransaksi['Tanggal_Ambil'], $lusa);
+
+                    if ($storeTransaksi['Tanggal_Ambil'] === $lusa) {
+                        $this->deleteStock($data['ID_Produk'], $data['Kuantitas']);
+                    }
+                }
+    
+                foreach ($productsData as $data) {
+                    $transaksi->products()->attach($data['ID_Produk'], [
+                        'Tipe' => $data['Tipe'],
+                        'Kuantitas' => $data['Kuantitas'],
+                        'Sub_Total' => $data['Sub_Total']
+                    ]);
+                }
             }
+
+            $this->reducePoin($storeTransaksi['Poin']);
 
             if ($transaksi->save()) {
                 return response([
                     'message' => 'Store Transaksi Success',
+                    'poin' => $user->Poin,
                     'data' => $transaksi,
                 ], 200);
             }
@@ -98,6 +119,133 @@ class TbltransaksiController extends Controller
                 'message' => 'Store Transaksi Failed',
                 'data' => $e->getMessage(),
             ], 400);
+        }
+    }
+
+    public function storeReady(request $request) {
+        try {
+            //$lusa = Carbon::now()->addDays(2);
+            $today = Carbon::now();
+
+            $user = Auth::user();
+
+            $storeTransaksi = $request->all();
+
+            //Dapetin Pegawai Admin
+            $pegawai = tblpegawai::where('ID_Jabatan', 2)->first();
+            
+            $validate = Validator::make($storeTransaksi, [
+                'Poin' => 'required',
+                'products' => 'required',
+                'Total_Transaksi' => 'required',
+            ]);
+
+            if($validate->fails()) {
+                return response([
+                    'message' => $validate->errors(),
+                    'status' => 404
+                ], 404);
+            } 
+
+            $storeTransaksi['ID_Transaksi'] = $this->generateIDTrans();
+            $storeTransaksi['ID_Customer'] = $user->ID_Customer;
+            $storeTransaksi['ID_Pegawai'] = $pegawai->ID_Pegawai;
+            $storeTransaksi['ID_Alamat'] = 11;
+            $storeTransaksi['Status'] = 'Menunggu Pembayaran';
+            $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
+            $storeTransaksi['Tanggal_Ambil'] = $today;
+            $storeTransaksi['Total_Pembayaran'] = 0;
+
+            $transaksi = tbltransaksi::create($storeTransaksi);
+            if ($request->has('products')) {
+                $products = $request->input('products');
+    
+                $productsData = [];
+                foreach ($products as $index => $data) {
+                    
+                    $productsData[$index] = [
+                        'ID_Produk' => $data['ID_Produk'],
+                        'Tipe' => $data['Tipe'],
+                        'Kuantitas' => $data['Kuantitas'],
+                        'Sub_Total' => $data['Sub_Total'] 
+                    ];
+
+                        $this->deleteReadyStock($data['ID_Produk'], $data['Kuantitas']);
+                }
+    
+                foreach ($productsData as $data) {
+                    $transaksi->products()->attach($data['ID_Produk'], [
+                        'Tipe' => $data['Tipe'],
+                        'Kuantitas' => $data['Kuantitas'],
+                        'Sub_Total' => $data['Sub_Total']
+                    ]);
+                }
+            }
+
+            $this->reducePoin($storeTransaksi['Poin']);
+
+            if ($transaksi->save()) {
+                return response([
+                    'message' => 'Store Transaksi Success',
+                    'today' => $today,
+                    'data' => $transaksi,
+                ], 200);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Store Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    private function deleteStock($produkID, $quantity) {
+        $produk = tblproduk::find($produkID);
+
+        if ($produk === null) {
+            return;
+        } 
+
+        if ($produk->ID_Kategori !== 4) {
+            $produk->Stok -= $quantity;
+        } else {
+            $produk->StokReady -= $quantity;
+        }
+
+        $produk->save();
+    }
+
+    private function deleteReadyStock($produkID, $quantity) {
+        $produk = tblproduk::find($produkID);
+
+        if ($produk === null) {
+            return;
+        } 
+
+        if ($produk->StokReady !== 0) {
+            $produk->StokReady -= $quantity;
+        }
+
+        $produk->save();
+    }
+
+    // public function addReady($transID) {
+    //     $transaksi = tbltransaksi::find($transID)->first();
+
+        
+    // }
+
+    private function addReadyStock($produkID, $quantity) {
+        $produk = tblproduk::find($produkID);
+
+        if ($produk === null) {
+            return;
+        } 
+
+        if ($produk->StokReady !== 0) {
+            $produk->StokReady += $quantity;
+            $produk->save();
         }
     }
 
@@ -151,36 +299,15 @@ class TbltransaksiController extends Controller
         return $poin;
     }
 
-    public function reducePoin(Request $request)
+    private function reducePoin($poin)
     {
-        $storedData = $request->all();
-
         $user = Auth::user();
 
-        $validate = Validator::make($storedData, [
-            'Poin' => 'required|integer'
-        ]);
-
-        if ($user->Poin < $storedData['Poin']) {
-            return response([
-                'message' => 'Poin Kurang'
-            ], 400);
+        if ($user->Poin > $poin) {
+            $user->Poin -= $poin;
         }
 
-        $user->Poin -= $storedData['Poin'];
         $user->save();
-
-        if ($user->save()) {
-            return response([
-                'message' => 'Store Poin Success',
-                'data' => $user,
-            ], 200);
-        }
-
-        return response([
-            'message' => 'Update Content Failed',
-            'data' => null 
-        ], 400);
     }
 
 

@@ -194,6 +194,7 @@ class TblprodukController extends Controller
 
             // Pengaturan ID resep
             $id = $initID . $this->generateIDProduk($initID);
+            
 
             $produk = tblproduk::create([
                 'ID_Produk' => $id,
@@ -314,37 +315,127 @@ class TblprodukController extends Controller
         ], 404);
     }
 
-    public function showProductByTglAmbil(String $date)
+    public function showProductToday()
     {
-        $today = Carbon::today();
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $lusa = Carbon::now('Asia/Jakarta')->addDays(2)->format('Y-m-d');
+        $limit = 20;
 
-        $transaksi = tbltransaksi::where('Tanggal_Ambil', '>=', $today)->with(['products'])->get();
+        $transaksiPO = tbltransaksi::where('Tanggal_Ambil', $lusa)
+                                ->where('Status', '!=', 'Ditolak')->with(['products'])->get();
 
+        $transaksiReady = tbltransaksi::whereBetween('Tanggal_Ambil', [$today, $lusa])
+                                ->where('Status', '!=', 'Ditolak')->with(['products'])->get();
+        // Save Stock PO
         $productQty = [];
         
         //kumpulin semua kuantitas produk di array productQty
-        foreach ($transaksi as $trans) {
+        foreach ($transaksiPO as $trans) {
             foreach ($trans->products as $product) {
-                if (!isset($productQty[$product->ID_Produk])) {
+                if (!isset($productQty[$product->ID_Produk]) && $product->ID_Kategori !== 4) {
                     $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
-                } else {
+                } elseif ($product->ID_Kategori !== 4) {
+                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+
+        foreach ($transaksiReady as $trans) {
+            foreach ($trans->products as $product) {
+                if (!isset($productQty[$product->ID_Produk]) && $product->ID_Kategori === 4) {
+                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
+                } elseif ($product->ID_Kategori === 4) {
                     $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
                 }
             }
         }
         
-        $produk = tblproduk::all();
+        $produk = tblproduk::with(['kategori'])->get();
         
         //Kurangi limit dengan array kuantitas
         foreach ($produk as $prod) {
             if (isset($productQty[$prod->ID_Produk])) {
-                $prod->Stok -= $productQty[$prod->ID_Produk];
+                if ($prod->kategori->Nama_Kategori !== 'Titipan') {
+                    $prod->Stok = $limit - $productQty[$prod->ID_Produk];
+                } else {
+                    $prod->StokReady -= $productQty[$prod->ID_Produk];
+                }
+            } else {
+                if ($prod->kategori->Nama_Kategori !== 'Titipan') {
+                    $prod->Stok = $limit;
+                }
             }
         }
 
         if (count($produk) > 0) {
             return response([
                 'message' => 'Produk found',
+                'transaksi PO' => $productQty,
+                'data' => $produk
+            ], 200);
+        }
+
+        return response([
+            'message' => 'Produk not found',
+            'data' => null
+        ], 404);
+    }
+
+    public function showProductByTglAmbil(String $date)
+    {
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $limit = 20;
+
+        $transaksiPO = tbltransaksi::where('Tanggal_Ambil', $date)
+                                ->where('Status', '!=', 'Ditolak')->with(['products'])->get();
+
+        $transaksiReady = tbltransaksi::whereBetween('Tanggal_Ambil', [$today, $date])
+                                ->where('Status', '!=', 'Ditolak')->with(['products'])->get();
+        // Save Stock PO
+        $productQty = [];
+        
+        //kumpulin semua kuantitas produk di array productQty
+        foreach ($transaksiPO as $trans) {
+            foreach ($trans->products as $product) {
+                if (!isset($productQty[$product->ID_Produk]) && $product->ID_Kategori !== 4) {
+                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
+                } elseif ($product->ID_Kategori !== 4) {
+                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+
+        foreach ($transaksiReady as $trans) {
+            foreach ($trans->products as $product) {
+                if (!isset($productQty[$product->ID_Produk]) && $product->ID_Kategori === 4) {
+                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
+                } elseif ($product->ID_Kategori === 4) {
+                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+        
+        $produk = tblproduk::with(['kategori'])->get();
+        
+        //Kurangi limit dengan array kuantitas
+        foreach ($produk as $prod) {
+            if (isset($productQty[$prod->ID_Produk])) {
+                if ($prod->kategori->Nama_Kategori !== 'Titipan') {
+                    $prod->Stok = $limit - $productQty[$prod->ID_Produk];
+                } else {
+                    $prod->StokReady -= $productQty[$prod->ID_Produk];
+                }
+            } else {
+                if ($prod->kategori->Nama_Kategori !== 'Titipan') {
+                    $prod->Stok = $limit;
+                }
+            }
+        }
+
+        if (count($produk) > 0) {
+            return response([
+                'message' => 'Produk found',
+                'transaksi PO' => $productQty,
                 'data' => $produk
             ], 200);
         }
