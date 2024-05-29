@@ -321,7 +321,7 @@ class TblprodukController extends Controller
 
     public function getAllProdukForFrontEnd(){
         try{
-            $produk = tblproduk::all();
+            $produk = tblproduk::with(['tblkategori'])->get();
 
             if(count($produk) > 0){
                 return response([

@@ -6,6 +6,7 @@ use App\Models\tblpenggunaanbahanbaku;
 use App\Models\tblproduk;
 use App\Models\tbltransaksi;
 use App\Models\tblcustomer;
+use App\Models\tbldetailtransaksi;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -435,7 +436,8 @@ class TbltransaksiController extends Controller
     
     public function MORejectTransaction($id){
         try{
-            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+            $transaksi = tbltransaksi::with('tbldetailtransaksi')
+                ->where('ID_Transaksi', $id)->first();
 
             if ($transaksi == null) {
                 return response()->json([
@@ -460,27 +462,26 @@ class TbltransaksiController extends Controller
                 ]);
             } 
 
-            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'ditolak']);
-            $customer->Saldo += $transaksi->Total_pembayaran;
-            $customer->save();
             $transactionDetails = $transaksi->tbldetailtransaksi;
 
             foreach ($transactionDetails as $detail) {
-                $product = tblproduk::where('ID_Produk', $detail->ID_Produk)->first();
-
-                if ($product != null) {
-                    $product->Stok += $detail->Kuantitas;
-                    $product->save();
-                }
+                tbldetailtransaksi::where('ID_Transaksi', $id)->update(['Kuantitas' => 0]);
             }
+
+            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'ditolak']);            
+            tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->update(['Saldo' => $customer->Saldo + $transaksi->Total_pembayaran]);
+            $transaksi = tbltransaksi::with('tbldetailtransaksi')
+                ->where('ID_Transaksi', $id)->first();
+            $customer = tblcustomer::
+                where('ID_Customer', $transaksi->ID_Customer)->first();
 
             return response()->json([
                 'message' => 'Transaksi berhasil ditolak',
-                'data' => $transaksi,
+                'data' => [
+                    'customer' => $customer,
+                    'transaction' => $transaksi,
+                ],
             ]);
-
-            // $transaksi->delete();
-
         }catch(\Exception $e){
             return response()->json([
                 'message' => 'Update Transaksi Failed',
