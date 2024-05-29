@@ -57,6 +57,8 @@ class TbltransaksiController extends Controller
                 'products' => 'required',
                 'Tanggal_Ambil' => 'required',
                 'Total_Transaksi' => 'required',
+                'ID_Alamat' => 'required',
+                'ID_JenisPengiriman' => 'required'
             ]);
 
             if($validate->fails()) {
@@ -69,10 +71,14 @@ class TbltransaksiController extends Controller
             $storeTransaksi['ID_Transaksi'] = $this->generateIDTrans();
             $storeTransaksi['ID_Customer'] = $user->ID_Customer;
             $storeTransaksi['ID_Pegawai'] = $pegawai->ID_Pegawai;
-            $storeTransaksi['ID_Alamat'] = 11;
-            $storeTransaksi['Status'] = 'Menunggu Pembayaran';
+            if ($storeTransaksi['ID_JenisPengiriman'] === 3) {
+                $storeTransaksi['Status'] = 'Menunggu Konfirmasi Admin';
+            } else {
+                $storeTransaksi['Status'] = 'Menunggu Pembayaran';
+            }
+
             $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
-            $storeTransaksi['Total_Pembayaran'] = 0;
+            $storeTransaksi['Tipe_Transaksi'] = 0;
 
             $transaksi = tbltransaksi::create($storeTransaksi);
             if ($request->has('products')) {
@@ -132,6 +138,8 @@ class TbltransaksiController extends Controller
                 'Poin' => 'required',
                 'products' => 'required',
                 'Total_Transaksi' => 'required',
+                'ID_Alamat' => 'required',
+                'ID_JenisPengiriman' => 'required'
             ]);
 
             if($validate->fails()) {
@@ -144,11 +152,14 @@ class TbltransaksiController extends Controller
             $storeTransaksi['ID_Transaksi'] = $this->generateIDTrans();
             $storeTransaksi['ID_Customer'] = $user->ID_Customer;
             $storeTransaksi['ID_Pegawai'] = $pegawai->ID_Pegawai;
-            $storeTransaksi['ID_Alamat'] = 11;
-            $storeTransaksi['Status'] = 'Menunggu Pembayaran';
+            if ($storeTransaksi['ID_JenisPengiriman'] === 3) {
+                $storeTransaksi['Status'] = 'Menunggu Konfirmasi Admin';
+            } else {
+                $storeTransaksi['Status'] = 'Menunggu Pembayaran';
+            }
             $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
             $storeTransaksi['Tanggal_Ambil'] = $today;
-            $storeTransaksi['Total_Pembayaran'] = 1;
+            $storeTransaksi['Tipe_Transaksi'] = 1;
 
             $transaksi = tbltransaksi::create($storeTransaksi);
             if ($request->has('products')) {
@@ -264,7 +275,7 @@ class TbltransaksiController extends Controller
         return $id;
     }
 
-    private function countPoin(String $id_trans) //Buat MO
+    public function countPoin(String $id_trans) //Buat MO
     {
         $transaksi = tbltransaksi::where('ID_Transaksi', $id_trans)->first();
         $totalHarga = $transaksi->Total_Transaksi;
@@ -628,5 +639,31 @@ class TbltransaksiController extends Controller
                 'data' => $e->getMessage(),
             ], 400);
         }
+    }
+
+    public function getCompleteTransCust() {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not authenticated',
+                'data' => null
+            ], 401);
+        }
+
+        $transaksi = tbltransaksi::where('ID_Customer', $user->ID_Customer)
+                                ->where('Status', 'Selesai')->with(['tblcustomer', 'tblalamat', 'products', 'tbljenispengiriman'])->get();
+
+        if ($transaksi->count() == 0) {
+            return response()->json([
+                'message' => 'Transaksi tidak ditemukan',
+                'data' => null
+            ], 404);
+        }
+                        
+        return response()->json([
+            'message' => 'Fetch Transaksi Success',
+            'data' => $transaksi,
+        ], 200);
     }
 }

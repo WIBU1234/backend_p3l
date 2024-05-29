@@ -211,7 +211,7 @@ class TblcustomerController extends Controller
 
     public function index() {
         $user = Auth::user();
-        $tblcustomer = tblcustomer::find($user->ID_Customer);
+        $tblcustomer = tblcustomer::find($user->ID_Customer)->with(['tblalamat'])->get();
         if (!$user) {
             return response()->json([
                 'message' => 'User Not Found',
@@ -222,6 +222,24 @@ class TblcustomerController extends Controller
                 'data' => $tblcustomer
             ], 200);
         }
+    }
+
+    public function getAlamatUser() {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'User Not Found',
+            ], 404);
+        }
+    
+        // Fetch the user's address
+        $alamat = $user->tblalamat;
+    
+        return response()->json([
+            'message' => 'User Found',
+            'data' => $alamat,
+        ], 200);
     }
 
     public function updateProfile(Request $request) {

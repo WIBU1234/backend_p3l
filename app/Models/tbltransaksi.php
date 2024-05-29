@@ -43,6 +43,10 @@ class tbltransaksi extends Model
         return $this->hasMany(tbldetailtransaksi::class, 'ID_Transaksi', 'ID_Transaksi');
     }
 
+    public function tbljenispengiriman() {
+        return $this->belongsTo(tbljenispengiriman::class, 'ID_JenisPengiriman', 'ID_JenisPengiriman');
+    }
+
     public function products() : BelongsToMany 
     {
         return $this->belongsToMany(tblproduk::class, 'tbldetailtransaksi', 'ID_Transaksi', 'ID_Produk')

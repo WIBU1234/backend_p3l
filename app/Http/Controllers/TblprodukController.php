@@ -322,37 +322,28 @@ class TblprodukController extends Controller
         $limit = 20;
 
         $transaksiPO = tbltransaksi::where('Tanggal_Ambil', $lusa)
-                                ->where('Status', '!=', 'Ditolak')->with(['products'])->get();
+                                ->where('Tipe_Transaksi', 0)->with(['products'])->get();
 
         $transaksiReady = tbltransaksi::whereBetween('Tanggal_Ambil', [$today, $lusa])
-                                ->where('Status', '!=', 'Ditolak')->with(['products'])->get();
+                                ->where('Tipe_Transaksi', 1)->with(['products'])->get();
+        
+        
+        $produk = tblproduk::with(['kategori'])->get();
         // Save Stock PO
         $productQty = [];
         
         //kumpulin semua kuantitas produk di array productQty
         foreach ($transaksiPO as $trans) {
             foreach ($trans->products as $product) {
-                if (!isset($productQty[$product->ID_Produk]) && $product->ID_Kategori !== 4) {
+                if (!isset($productQty[$product->ID_Produk])) {
                     $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
-                } elseif ($product->ID_Kategori !== 4) {
+                } else {
                     $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
                 }
             }
         }
 
-        foreach ($transaksiReady as $trans) {
-            foreach ($trans->products as $product) {
-                if (!isset($productQty[$product->ID_Produk]) && $product->ID_Kategori === 4) {
-                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
-                } elseif ($product->ID_Kategori === 4) {
-                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
-                }
-            }
-        }
         
-        $produk = tblproduk::with(['kategori'])->get();
-        
-        //Kurangi limit dengan array kuantitas
         foreach ($produk as $prod) {
             if (isset($productQty[$prod->ID_Produk])) {
                 if ($prod->kategori->Nama_Kategori !== 'Titipan') {
@@ -365,6 +356,24 @@ class TblprodukController extends Controller
                     $prod->Stok = $limit;
                 }
             }
+        }
+
+        $productQty = [];
+
+        foreach ($transaksiReady as $trans) {
+            foreach ($trans->products as $product) {
+                if (!isset($productQty[$product->ID_Produk])) {
+                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
+                } else {
+                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+
+        foreach ($produk as $prod) {
+            if (isset($productQty[$prod->ID_Produk])) {
+                $prod->StokReady -= $productQty[$prod->ID_Produk];
+            } 
         }
 
         if (count($produk) > 0) {
@@ -387,10 +396,10 @@ class TblprodukController extends Controller
         $limit = 20;
 
         $transaksiPO = tbltransaksi::where('Tanggal_Ambil', $date)
-                                ->where('Total_Pembayaran', 0)->with(['products'])->get();
+                                ->where('Tipe_Transaksi', 0)->with(['products'])->get();
 
         $transaksiReady = tbltransaksi::whereBetween('Tanggal_Ambil', [$today, $date])
-                                ->where('Total_Pembayaran', 1)->with(['products'])->get();
+                                ->where('Tipe_Transaksi', 1)->with(['products'])->get();
         
         
         $produk = tblproduk::with(['kategori'])->get();

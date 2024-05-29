@@ -122,6 +122,7 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::post('/reduce-stok-ready/{id_trans}', [App\Http\Controllers\TblprodukController::class, 'reduceReady']);
 
     Route::get('/customer/history', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiCustomer']);
+    Route::get('/complete-order', [App\Http\Controllers\TbltransaksiController::class, 'getCompleteTransCust']);
     Route::get('/customer/history/{nama}', [App\Http\Controllers\TbltransaksiController::class, 'searchDataHistoryTransaksi']);
     
     Route::get('/detail-transaksi', [App\Http\Controllers\TbldetailtransaksiController::class, 'index']);
@@ -135,6 +136,8 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::get('/kategori', [App\Http\Controllers\TblkategoriController::class, 'getAllKategori']);
 
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
+
+    Route::get('/customer-alamat', [App\Http\Controllers\TblcustomerController::class, 'getAlamatUser']);
 
     Route::get('/customerUnPayed', [App\Http\Controllers\TblcustomerController::class, 'showAllNeedToPay']);
     Route::post('/sendImageForPaying', [App\Http\Controllers\TblcustomerController::class, 'sendImageForPaying']);
