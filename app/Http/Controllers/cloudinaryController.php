@@ -16,7 +16,9 @@ class cloudinaryController extends Controller
             throw new \Exception('Invalid image. The image must be a file of type: jpeg, png, bmp, gif, svg, webp and not exceed 2MB.');
         }
 
-        $cloudinaryImage = $image->storeOnCloudinaryAs('p3l', $imageName);
+        $imageNameWithoutExtension = pathinfo($imageName, PATHINFO_FILENAME);
+
+        $cloudinaryImage = $image->storeOnCloudinaryAs('p3l', $imageNameWithoutExtension);
         $url = $cloudinaryImage->getSecurePath();
         $public_id = $cloudinaryImage->getPublicId();
         
