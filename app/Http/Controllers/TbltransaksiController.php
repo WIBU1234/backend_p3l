@@ -784,9 +784,16 @@ class TbltransaksiController extends Controller
                 ], 200);
             }
 
+            $laporanTransaksi = ([
+                'Tahun' => $tahun,
+                'Tanggal_Cetak' => date('Y-m-d'),
+                'data' => $transaksi,
+                'Total_Penjualan' => $transaksi->sum('total_pendapatan'),
+            ]);
+
             return response()->json([
                 'message' => 'Berhasil Mendapatkan Laporan Penjualan Bulanan',
-                'data' => $transaksi,
+                'data' => $laporanTransaksi,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

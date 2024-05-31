@@ -26,7 +26,7 @@ class TblpenggunaanbahanbakuController extends Controller
 
             $laporanFix = ([
                 'Periode' => $tglAwal . '-' .  $tglAkhir,
-                'Tanggal Cetak' => date('Y-m-d'),
+                'Tanggal_Cetak' => date('Y-m-d'),
                 'data' => $laporanPBB,
             ]);
             
