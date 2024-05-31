@@ -135,6 +135,7 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::put('/MORejectTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MORejectTransaction']);
 
     Route::get('/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
+    Route::get('/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {

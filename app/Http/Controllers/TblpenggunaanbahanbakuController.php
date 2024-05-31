@@ -24,11 +24,16 @@ class TblpenggunaanbahanbakuController extends Controller
                 ], 404);
             };
 
-            return response()->json([
-                'message' => 'Data Laporan Ditemukan',
+            $laporanFix = ([
                 'Periode' => $tglAwal . '-' .  $tglAkhir,
                 'Tanggal Cetak' => date('Y-m-d'),
                 'data' => $laporanPBB,
+            ]);
+            
+
+            return response()->json([
+                'message' => 'Data Laporan Ditemukan',
+                'data' => $laporanFix,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

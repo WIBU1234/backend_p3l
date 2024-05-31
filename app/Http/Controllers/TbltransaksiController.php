@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class TbltransaksiController extends Controller
 {
@@ -170,7 +171,7 @@ class TbltransaksiController extends Controller
             $transaksi = tbltransaksi::with('tblpegawai', 'tblcustomer', 'tbljenispengiriman')
                         ->where('Status', 'Menunggu Pembayaran')
                         ->where('Total_Pembayaran', '!=' , 0)
-                        ->where('ID_JenisPengiriman', '!=', 1)
+                        // ->where('ID_JenisPengiriman', '!=', 1)
                         ->where('Bukti_Pembayaran', '!=', null)
                         ->get();
             if ($transaksi->count() == 0) {
@@ -223,9 +224,9 @@ class TbltransaksiController extends Controller
         try {
             $transaksi = tbltransaksi::join('tblalamat', 'tbltransaksi.ID_Alamat', '=', 'tblalamat.ID_Alamat')
                         ->with('tblpegawai', 'tblcustomer', 'tbljenispengiriman')
-                        ->where('Jarak', '!=', 0)
-                        ->where('Status', 'Menunggu Konfirmasi Admin')
-                        ->where('ID_JenisPengiriman', '!=', 1)
+                        ->where('tblalamat.Jarak', '!=', 0)
+                        ->where('tbltransaksi.Status', 'Menunggu Konfirmasi Admin')
+                        ->where('ID_JenisPengiriman', '>=', 1)
                         ->where('Total_Bayar', '=', null)
                         ->where('Bukti_Pembayaran', '=', null)
                         ->orderBy('Tanggal_Transaksi')
@@ -762,6 +763,36 @@ class TbltransaksiController extends Controller
                 'message' => 'Error Update Data Transaksi Expired',
                 'data' => $e->getMessage(),
             ], 400);
+        }
+    }
+
+    public function LaporanPenjualanTahunan($tahun) {
+        try {
+            $transaksi = DB::table('tbltransaksi as T')
+            ->join('tbldetailtransaksi as DT', 'DT.ID_Transaksi', '=', 'T.ID_Transaksi')
+            ->select(DB::raw('extract(month from T.Tanggal_Ambil) as bulan'), DB::raw('SUM(DT.Kuantitas) as total_penjualan'), DB::raw('SUM(T.Total_Pembayaran) as total_pendapatan'))
+            ->where('status', 'Selesai')
+            ->whereNotNull('T.Tanggal_Ambil')
+            ->whereYear('T.Tanggal_Ambil', $tahun)
+            ->groupBy(DB::raw('extract(month from T.Tanggal_Ambil)'))
+            ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Laporan untuk tahun ' . $tahun . ' kosong',
+                    'data' => null,
+                ], 200);
+            }
+
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Laporan Penjualan Bulanan',
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error On Making Summary Penjualanan Bulanan',
+                'data' => $e->getMessage(),
+            ], 200);
         }
     }
 }
