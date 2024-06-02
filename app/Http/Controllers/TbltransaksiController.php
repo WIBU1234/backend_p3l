@@ -770,7 +770,7 @@ class TbltransaksiController extends Controller
         try {
             $transaksi = DB::table('tbltransaksi as T')
             ->join('tbldetailtransaksi as DT', 'DT.ID_Transaksi', '=', 'T.ID_Transaksi')
-            ->select(DB::raw('extract(month from T.Tanggal_Ambil) as bulan'), DB::raw('SUM(DT.Kuantitas) as total_penjualan'), DB::raw('SUM(T.Total_Pembayaran) as total_pendapatan'))
+            ->select(DB::raw('extract(month from T.Tanggal_Ambil) as bulan'), DB::raw('SUM(DT.Kuantitas) as total_penjualan'), DB::raw('SUM(DT.Sub_Total) as total_pendapatan'))
             ->where('status', 'Selesai')
             ->whereNotNull('T.Tanggal_Ambil')
             ->whereYear('T.Tanggal_Ambil', $tahun)
