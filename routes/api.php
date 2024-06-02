@@ -98,6 +98,8 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
     //Rute yang cuma bisa diakses Owner
+    Route::get('/owner/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
+    Route::get('/owner/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
