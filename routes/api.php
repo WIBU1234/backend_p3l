@@ -66,6 +66,9 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::get('/customerHistory/{id}', [App\Http\Controllers\TblcustomerController::class, 'getCustomerHistory']);
     Route::get('/customerAddress/{id}', [App\Http\Controllers\TblalamatController::class, 'getSpesificAddressByIdUser']);
     Route::get('/customerTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiToProduk']);
+
+    Route::get('/history', [App\Http\Controllers\TblhistorysaldoController::class, 'getAllHistoryTransaction']);
+    Route::put('/history/{id}', [App\Http\Controllers\TblhistorysaldoController::class, 'adminAcceptHistory']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
@@ -118,6 +121,9 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
 
     Route::get('/getTransaksiByIdCustomer/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiByIdCustomer']);
     Route::post('/sendProofPayment', [App\Http\Controllers\TbltransaksiController::class, 'sendProofPayment']);
+
+    Route::post('/customerSaldo', [App\Http\Controllers\TblhistorysaldoController::class, 'customerRequestSaldo']);
+    Route::get('/customerSaldo', [App\Http\Controllers\TblhistorysaldoController::class, 'customerGetAllHistory']);
 });
 
 // Temporary Seto
