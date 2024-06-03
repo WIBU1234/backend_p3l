@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\tblalamat;
 use App\Models\tblpenggunaanbahanbaku;
 use App\Models\tblproduk;
 use App\Models\tbltransaksi;
