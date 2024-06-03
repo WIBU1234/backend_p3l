@@ -28,6 +28,10 @@ class tblproduk extends Model
         return $this->belongsTo(tblkategori::class, 'ID_Kategori', 'ID_Kategori');
     }
 
+    public function tblkategori() {
+        return $this->hasOne(tblkategori::class, 'ID_Kategori', 'ID_Kategori');
+    }
+
     public function tblresep() {
         return $this->hasOne(tblresep::class, 'ID_Produk', 'ID_Produk');
     }

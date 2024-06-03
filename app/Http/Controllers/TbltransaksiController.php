@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\tblalamat;
+use App\Models\tblpenggunaanbahanbaku;
 use App\Models\tblproduk;
 use App\Models\tbltransaksi;
 use App\Models\tblcustomer;
+use App\Models\tbldetailtransaksi;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -315,8 +316,9 @@ class TbltransaksiController extends Controller
 
     public function listofTransactionStatusPembayaranValid(){
         try{
-            $transaksi = tbltransaksi::with(['tbldetailtransaksi.tblproduk'])
+            $transaksi = tbltransaksi::with(['tblcustomer'])
                             ->where('Status', 'Pembayaran Valid')
+                            ->orderBy('Tanggal_Transaksi', 'asc')
                             ->get();
 
             if ($transaksi->count() == 0) {
@@ -357,7 +359,7 @@ class TbltransaksiController extends Controller
                 ]);
             }
 
-            if ($transaksi->Status != 'pembayaran valid') {
+            if ($transaksi->Status != 'Pembayaran Valid') {
                 return response()->json([
                     'message' => 'History Transaksi belum dibayarkan',
                     'data' => null,
@@ -388,7 +390,15 @@ class TbltransaksiController extends Controller
             ])->where('ID_Transaksi', $id)->get();
     
             $ingredients = $this->collectIngredients($products);
-    
+
+            foreach ($ingredients as $ingredient) {
+                tblpenggunaanbahanbaku::create([
+                    'ID_Bahan_Baku' => $ingredient['ID_Bahan_Baku'],
+                    'Kuantitas' => $ingredient['Kuantitas'],
+                    'Tanggal' => Carbon::now(),
+                ]);
+            }
+
             tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diterima']);
             $customer->Poin += $points;
             $customer->save();
@@ -408,7 +418,71 @@ class TbltransaksiController extends Controller
             ], 400);
         }
     }
+
+    public function getAllIngredientsAndProduct($id){
+        try{
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
     
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'History Transaksi tidak ditemukan',
+                    'data' => null,
+                ]);
+            }
+
+            if ($transaksi->Status == 'diterima') {
+                return response()->json([
+                    'message' => 'History Transaksi sudah pernah diterima MO',
+                    'data' => null,
+                ]);
+            }
+
+            if ($transaksi->Status != 'Pembayaran Valid') {
+                return response()->json([
+                    'message' => 'History Transaksi belum dibayarkan',
+                    'data' => null,
+                ]);
+            }
+    
+            $customer = tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->first();
+    
+            if ($customer == null) {
+                return response()->json([
+                    'message' => 'Customer tidak ditemukan || error ID_Customer',
+                    'data' => null,
+                ]);
+            }
+    
+            $total_transaksi = $transaksi->Total_Transaksi;
+    
+            $products = tbltransaksi::with([
+                'tbldetailtransaksi.tblproduk' => function($query) {
+                    $query->with([
+                        'tblresep.tbldetailresep',
+                        'tblhampers' => function($query) {
+                            $query->with('tbldetailhampers.tblresep.tbldetailresep');
+                        }
+                    ]);
+                }
+            ])->where('ID_Transaksi', $id)->get();
+    
+            $ingredients = $this->collectIngredients($products);
+    
+            return response()->json([
+                'message' => 'Transaksi berhasil diterima',
+                'data' => [
+                    'products' => $products,
+                    'ingredients' => $ingredients,
+                ],
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     private function calculatePoints($total_transaksi, $transactionDate, $birthday) {
         $points = 0;
     
@@ -436,21 +510,23 @@ class TbltransaksiController extends Controller
     
     private function collectIngredients($products) {
         $ingredients = [];
-    
+        
         foreach ($products as $product) {
             foreach ($product['tbldetailtransaksi'] as $detail) {
                 $tblproduk = $detail['tblproduk'];
-    
+                $kuantitasProduk = $detail['Kuantitas'];
+                
                 // Mengumpulkan bahan-bahan dari tblresep
                 if (isset($tblproduk['tblresep'])) {
-                    $ingredients = $this->collectIngredientsFromRecipe($tblproduk['tblresep']['tbldetailresep'], $ingredients);
+                    $ingredients = $this->collectIngredientsFromRecipe($tblproduk['tblresep']['tbldetailresep'], $ingredients, $kuantitasProduk);
                 }
-    
+                
                 // Mengumpulkan bahan-bahan dari hampers
                 if (isset($tblproduk['tblhampers'])) {
                     foreach ($tblproduk['tblhampers']['tbldetailhampers'] as $detailHampers) {
+                        $kuantitasForHampers = $kuantitasProduk * $detailHampers['Kuantitas'];
                         if (isset($detailHampers['tblresep'])) {
-                            $ingredients = $this->collectIngredientsFromRecipe($detailHampers['tblresep']['tbldetailresep'], $ingredients);
+                            $ingredients = $this->collectIngredientsFromRecipe($detailHampers['tblresep']['tbldetailresep'], $ingredients, $kuantitasForHampers);
                         }
                     }
                 }
@@ -459,27 +535,31 @@ class TbltransaksiController extends Controller
         return $ingredients;
     }
     
-    private function collectIngredientsFromRecipe($recipeDetails, $ingredients) {
+    private function collectIngredientsFromRecipe($recipeDetails, $ingredients, $kuantitasProduk) {
         foreach ($recipeDetails as $resep) {
             $bahanNama = $resep['Nama_Bahan'];
+            $kuantitasBahan = $resep['pivot']['Kuantitas'] * $kuantitasProduk;
+            
             if (isset($ingredients[$bahanNama])) {
-                $ingredients[$bahanNama]['Kuantitas'] += $resep['pivot']['Kuantitas'];
+                $ingredients[$bahanNama]['Kuantitas'] += $kuantitasBahan;
             } else {
                 $ingredients[$bahanNama] = [
                     'ID_Bahan_Baku' => $resep['ID_Bahan_Baku'],
                     'Nama_Bahan' => $bahanNama,
                     'Stok' => $resep['Stok'],
                     'Satuan' => $resep['Satuan'],
-                    'Kuantitas' => $resep['pivot']['Kuantitas'],
+                    'Kuantitas' => $kuantitasBahan,
                 ];
             }
-        }    
+        }
         return $ingredients;
     }
     
+    
     public function MORejectTransaction($id){
         try{
-            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+            $transaksi = tbltransaksi::with('tbldetailtransaksi')
+                ->where('ID_Transaksi', $id)->first();
 
             if ($transaksi == null) {
                 return response()->json([
@@ -504,30 +584,110 @@ class TbltransaksiController extends Controller
                 ]);
             } 
 
-            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'ditolak']);
-            $customer->Saldo += $transaksi->Total_pembayaran;
-            $customer->save();
             $transactionDetails = $transaksi->tbldetailtransaksi;
 
             foreach ($transactionDetails as $detail) {
-                $product = tblproduk::where('ID_Produk', $detail->ID_Produk)->first();
-
-                if ($product != null) {
-                    $product->Stok += $detail->Kuantitas;
-                    $product->save();
-                }
+                tbldetailtransaksi::where('ID_Transaksi', $id)->update(['Kuantitas' => 0]);
             }
+
+            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'ditolak']);            
+            tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->update(['Saldo' => $customer->Saldo + $transaksi->Total_pembayaran]);
+            $transaksi = tbltransaksi::with('tbldetailtransaksi')
+                ->where('ID_Transaksi', $id)->first();
+            $customer = tblcustomer::
+                where('ID_Customer', $transaksi->ID_Customer)->first();
 
             return response()->json([
                 'message' => 'Transaksi berhasil ditolak',
-                'data' => $transaksi,
+                'data' => [
+                    'customer' => $customer,
+                    'transaction' => $transaksi,
+                ],
             ]);
-
-            // $transaksi->delete();
-
         }catch(\Exception $e){
             return response()->json([
                 'message' => 'Update Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function getTransaksiByIdCustomer($id){
+        try{
+            $date = Carbon::now();
+
+            $transaksi = tbltransaksi::with(['tblAlamat', 'tbldetailtransaksi.tblproduk', 'tblcustomer'])
+                ->where('ID_Customer', $id)
+                ->where('Status', 'Menunggu Pembayaran')
+                ->whereDate('Tanggal_Transaksi', '<', $date)
+                ->orderBy('Tanggal_Transaksi', 'asc')
+                ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Transaksi tidak ditemukan',
+                    'data' => null,
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Transaksi berhasil diambil',
+                'data' => $transaksi,
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function sendProofPayment(request $request){
+        try{
+            $user = Auth::user();
+            $validator = Validator::make($request->all(), [
+                'ID_Customer' => 'required',
+                'ID_Transaksi' => 'required',
+                'Bukti_Pembayaran' => 'required|image|max:2048',
+                'Total_pembayaran' => 'required|numeric',
+            ]);
+    
+            if($validator->fails()) {
+                return response([
+                    'message' => $validator->errors(),
+                    'status' => 404
+                ], 404);
+            }
+
+            $IDTransaksi = $request->ID_Transaksi;
+            $totalPembayaranInput = $request->Total_pembayaran;
+            $transaksi = tbltransaksi::get()->where('ID_Transaksi', $IDTransaksi)->first();
+
+            if($transaksi == null){
+                return response([
+                    'message' => "Transaksi tidak ditemukan",
+                    'status' => 404
+                ], 404);
+            }
+
+            $image = $request->file('Bukti_Pembayaran');
+            $originalName = $image->getClientOriginalName();
+            $cloudinaryController = new cloudinaryController();
+            $public_id = $cloudinaryController->sendImageToCloudinary($image, $originalName);
+
+            tbltransaksi::where('ID_Transaksi', $IDTransaksi)->update([
+                'Bukti_Pembayaran' => $public_id,
+                'Total_pembayaran' => $totalPembayaranInput,
+            ]);
+
+            return response([
+                'message' => 'Bukti Pembayaran berhasil dikirim',
+                'status' => 200,
+                'data' => $transaksi
+            ], 200);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Sending proof failed',
                 'data' => $e->getMessage(),
             ], 400);
         }
