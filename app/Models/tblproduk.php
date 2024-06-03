@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class tblproduk extends Model
 {
@@ -38,5 +39,9 @@ class tblproduk extends Model
 
     public function tblhampers(){
         return $this->hasOne(tblhampers::class, 'ID_Produk', 'ID_Produk');
+    }
+
+    public function tbldetailtransaksi(){
+        return $this->hasMany(tbldetailtransaksi::class, 'ID_Produk', 'ID_Produk');
     }
 }
