@@ -47,18 +47,8 @@ class LaporanController extends Controller
 
     public function getLaporanPresensiByBulanTahun(Request $request)
     {
-        try{
-            $validator = Validator::make($request->all(), [
-                'bulan' => 'required|integer|min:1|max:12',
-                'tahun' => 'required|integer|min:1900|max:2100',
-            ]);
-    
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $validator->errors()->first(),
-                ], 400);
-            }
+        try {
+            $this->validateInput($request);
     
             $bulan = $request->bulan;
             $tahun = $request->tahun;
@@ -66,33 +56,10 @@ class LaporanController extends Controller
             $tgl_awal = date('Y-m-d', strtotime("$tahun-$bulan-01"));
             $tgl_akhir = date('Y-m-t', strtotime($tgl_awal));
     
-            // $data = tblpresensi::with('tblpegawai')
-            //     ->whereBetween('Tanggal', [$tgl_awal, $tgl_akhir])->get();
-    
-            $data = tblpegawai::with(['tblpresensi' => function ($query) use ($tgl_awal, $tgl_akhir) {
-                $query->whereBetween('Tanggal', [$tgl_awal, $tgl_akhir]);
-            }])->whereHas('tblpresensi', function ($query) use ($tgl_awal, $tgl_akhir) {
-                $query->whereBetween('Tanggal', [$tgl_awal, $tgl_akhir]);
-            })->get();
-    
+            $data = $this->getDataPresensi($tgl_awal, $tgl_akhir);
             $totalHari = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
     
-            $data->each(function($pegawai) use ($totalHari) {
-                $pegawai->jumlahPresensi = $pegawai->tblpresensi->count();
-                $pegawai->totalHari = $totalHari;
-    
-                $pegawai->jumlahHadir = $pegawai->totalHari - $pegawai->jumlahPresensi;
-                $pegawai->jumlahBolos = $pegawai->jumlahPresensi;
-                $pegawai->honorHarian = ($pegawai->jumlahHadir * 100000);
-    
-                if($pegawai->jumlahBolos <= 4){
-                    $pegawai->bonusRajin = 100000;
-                    $pegawai->total = $pegawai->honorHarian + $pegawai->bonusRajin;
-                }else{
-                    $pegawai->bonusRajin = 0;
-                    $pegawai->total = $pegawai->honorHarian;
-                }
-            });
+            $this->calculateHonorAndBonus($data, $totalHari);
     
             return response()->json([
                 'status' => 'success',
@@ -103,84 +70,36 @@ class LaporanController extends Controller
                     'data' => $data,
                 ],
             ], 200);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Fetch Laporan Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }
     }
-
-    public function getLaporanPemasukanPengeluaranBulanan(Request $request){
-        try{
-            $validator = Validator::make($request->all(), [
-                'bulan' => 'required|integer|min:1|max:12',
-                'tahun' => 'required|integer|min:1900|max:2100',
-            ]);
     
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $validator->errors()->first(),
-                ], 400);
-            }
+    public function getLaporanPemasukanPengeluaranBulanan(Request $request)
+    {
+        try {
+            $this->validateInput($request);
     
             $bulan = $request->bulan;
             $tahun = $request->tahun;
     
             $tgl_awal = date('Y-m-d', strtotime("$tahun-$bulan-01"));
             $tgl_akhir = date('Y-m-t', strtotime($tgl_awal));
-        
+    
             $data = tblpengeluaran::whereBetween('Tanggal', [$tgl_awal, $tgl_akhir])->get();
             $dataPenjualan = tbltransaksi::whereBetween('Tanggal_Transaksi', [$tgl_awal, $tgl_akhir])
                 ->where('Status', 'Selesai')
                 ->get();
-
-            $dataPegawai = tblpegawai::with(['tblpresensi' => function ($query) use ($tgl_awal, $tgl_akhir) {
-                $query->whereBetween('Tanggal', [$tgl_awal, $tgl_akhir]);
-            }])->whereHas('tblpresensi', function ($query) use ($tgl_awal, $tgl_akhir) {
-                $query->whereBetween('Tanggal', [$tgl_awal, $tgl_akhir]);
-            })->get();
+            $dataPegawai = $this->getDataPresensi($tgl_awal, $tgl_akhir);
     
             $totalHari = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
+            $this->calculateHonorAndBonus($dataPegawai, $totalHari);
     
-            $dataPegawai->each(function($pegawai) use ($totalHari) {
-                $pegawai->jumlahPresensi = $pegawai->tblpresensi->count();
-                $pegawai->totalHari = $totalHari;
+            $tableLaporan = $this->calculateLaporan($data, $dataPenjualan, $dataPegawai);
     
-                $pegawai->jumlahHadir = $pegawai->totalHari - $pegawai->jumlahPresensi;
-                $pegawai->jumlahBolos = $pegawai->jumlahPresensi;
-                $pegawai->honorHarian = ($pegawai->jumlahHadir * 100000);
-    
-                if($pegawai->jumlahBolos <= 4){
-                    $pegawai->bonusRajin = 100000;
-                    $pegawai->total = $pegawai->honorHarian + $pegawai->bonusRajin;
-                }else{
-                    $pegawai->bonusRajin = 0;
-                    $pegawai->total = $pegawai->honorHarian;
-                }
-            });
-
-            $tableLaporan = [
-                'Penjualan' => [
-                    'Pemasukan' => $dataPenjualan->sum('Total_Transaksi'),
-                    'Pengeluaran' => 0,
-                ],
-                'Tip' => [
-                    'Pemasukan' => $dataPenjualan->sum('Tip'),
-                    'Pengeluaran' => 0,
-                ],
-                'Listrik' => [
-                    'Pemasukan' => 0,
-                    'Pengeluaran' => $data->where('Nama', 'Listrik')->sum('Harga'),
-                ],
-                'Gaji Karyawan' => [
-                    'Pemasukan' => 0,
-                    'Pengeluaran' => $dataPegawai->sum('total'),
-                ],
-                'total' => 0,
-            ];
-
             return response()->json([
                 'status' => 'success',
                 'data' => [
@@ -188,21 +107,89 @@ class LaporanController extends Controller
                     'tahun' => $tahun,
                     'tgl_cetak' => Carbon::now()->format('d F Y'),
                     'dataTable' => $tableLaporan,
-                    'data' => 
-                        [
-                            $tableLaporan,
-                            $data,
-                            $dataPegawai,
-                        ],
+                    'data' => [
+                        $tableLaporan,
+                        $data,
+                        $dataPegawai,
+                    ],
                 ],
             ], 200);
-
-        } catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Fetch Laporan Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }
     }
+
+    private function validateInput($request)
+    {
+        $validator = Validator::make($request->all(), [
+            'bulan' => 'required|integer|min:1|max:12',
+            'tahun' => 'required|integer|min:1900|max:2100',
+        ]);
+    
+        if ($validator->fails()) {
+            throw new \Exception($validator->errors()->first());
+        }
+    }
+    
+    private function getDataPresensi($tgl_awal, $tgl_akhir)
+    {
+        return tblpegawai::with(['tblpresensi' => function ($query) use ($tgl_awal, $tgl_akhir) {
+            $query->whereBetween('Tanggal', [$tgl_awal, $tgl_akhir]);
+        }])->whereHas('tblpresensi', function ($query) use ($tgl_awal, $tgl_akhir) {
+            $query->whereBetween('Tanggal', [$tgl_awal, $tgl_akhir]);
+        })->get();
+    }
+    
+    private function calculateHonorAndBonus($data, $totalHari)
+    {
+        $data->each(function($pegawai) use ($totalHari) {
+            $pegawai->jumlahPresensi = $pegawai->tblpresensi->count();
+            $pegawai->totalHari = $totalHari;
+    
+            $pegawai->jumlahHadir = $pegawai->totalHari - $pegawai->jumlahPresensi;
+            $pegawai->jumlahBolos = $pegawai->jumlahPresensi;
+            $pegawai->honorHarian = ($pegawai->jumlahHadir * 100000);
+    
+            if($pegawai->jumlahBolos <= 4){
+                $pegawai->bonusRajin = 100000;
+                $pegawai->total = $pegawai->honorHarian + $pegawai->bonusRajin;
+            }else{
+                $pegawai->bonusRajin = 0;
+                $pegawai->total = $pegawai->honorHarian;
+            }
+        });
+    }
+    
+    private function calculateLaporan($data, $dataPenjualan, $dataPegawai)
+    {
+        return [
+            'Penjualan' => [
+                'Pemasukan' => $dataPenjualan->sum('Total_Transaksi'),
+                'Pengeluaran' => 0,
+            ],
+            'Tip' => [
+                'Pemasukan' => $dataPenjualan->sum('Tip'),
+                'Pengeluaran' => 0,
+            ],
+            'Listrik' => [
+                'Pemasukan' => 0,
+                'Pengeluaran' => $this->calculatePengeluaranListrik($data),
+            ],
+            'Gaji Karyawan' => [
+                'Pemasukan' => 0,
+                'Pengeluaran' => $dataPegawai->sum('total'),
+            ],
+            'total' => 0,
+        ];
+    }
+    
+    private function calculatePengeluaranListrik($data)
+    {
+        return $data->where('Nama', 'Listrik')->sum('Harga');
+    }
+    
 
 }
