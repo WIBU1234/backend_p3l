@@ -44,4 +44,9 @@ class tblpegawai extends Authenticatable
     {
         return $this->jabatan->Nama_Jabatan;
     }
+
+    public function tblpresensi()
+    {
+        return $this->hasMany(tblpresensi::class, 'ID_Pegawai');
+    }
 }

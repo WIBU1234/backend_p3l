@@ -108,6 +108,10 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::put('/MOAcceptTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOAcceptTransaction']);
     Route::put('/MORejectTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MORejectTransaction']);
     Route::get('/getAllIngredientsAndProduct/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getAllIngredientsAndProduct']);
+
+    Route::post('/laporanPresensiKaryawan', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensi']);
+    Route::post('/laporanPresensiKaryawanByBulanTahun', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensiByBulanTahun']);
+    Route::post('/laporanPemasukanPengeluaran', [App\Http\Controllers\LaporanController::class, 'getLaporanPemasukanPengeluaranBulanan']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
