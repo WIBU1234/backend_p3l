@@ -912,6 +912,12 @@ class TbltransaksiController extends Controller
                 ], 404);
             }
 
+            $transactionDetails = $transaksi->tbldetailtransaksi;
+
+            foreach ($transactionDetails as $detail) {
+                tbldetailtransaksi::where('ID_Transaksi', $id)->update(['Kuantitas' => 0]);
+            }
+
             $transaksi->Status = 'Batal';
             $transaksi->save();
 
