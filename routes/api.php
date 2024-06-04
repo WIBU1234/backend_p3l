@@ -72,10 +72,35 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::get('/customerHistory/{id}', [App\Http\Controllers\TblcustomerController::class, 'getCustomerHistory']);
     Route::get('/customerAddress/{id}', [App\Http\Controllers\TblalamatController::class, 'getSpesificAddressByIdUser']);
     Route::get('/customerTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiToProduk']);
+
+    Route::get('/alamat', [App\Http\Controllers\TblalamatController::class, 'ShowAllAlamat']);
+    Route::get('/alamat/no-jarak', [App\Http\Controllers\TblalamatController::class, 'ShowAllAlamatWithNoJarak']);
+    Route::get('/alamat/{idC}/{idA}', [App\Http\Controllers\TblalamatController::class, 'ShowOneAlamat']);
+    Route::put('/update-jarak-biaya/{idC}/{idA}', [App\Http\Controllers\TblalamatController::class, 'updateJarakBiaya']);
+
+    Route::get('/confirm-transaksi', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiOnProcess']);
+    Route::put('/confirm-transaksi/{id}', [App\Http\Controllers\TbltransaksiController::class, 'updateStatusTransaksi']);
+
+    Route::get('/bukti-pembayaran/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getBuktiPembayaran']);
+
+    Route::get('/transaksi-total-bayar', [App\Http\Controllers\TbltransaksiController::class, 'showTransaksiNoBayar']);
+    Route::put('/transaksi-total-bayar/{id}', [App\Http\Controllers\TbltransaksiController::class, 'updateTotalBayarTransaksi']);
+
+    Route::get('/transaksi-diproses', [App\Http\Controllers\TbltransaksiController::class, 'showTransaksiDiproses']);
+    Route::put('/transaksi-diproses/{id}', [App\Http\Controllers\TbltransaksiController::class, 'UpdateStatusKirimTransaksi']);
+
+    Route::get('/transaksi-siap-kirim', [App\Http\Controllers\TbltransaksiController::class, 'ShowTransaksiSiapKirim']);
+    Route::put('/transaksi-siap-kirim/{id}', [App\Http\Controllers\TbltransaksiController::class, 'UpdateStatusSelesaiTransaksi']);
+
+    Route::get('/transaksi-telat-bayar', [App\Http\Controllers\TbltransaksiController::class, 'showTransaksiExpired']);
+    Route::put('/transaksi-telat-bayar/{id}', [App\Http\Controllers\TbltransaksiController::class, 'PutTransaksiTelatBayar']);
+    route::get('/detail-transaksi/{id}', [App\Http\Controllers\TbldetailtransaksiController::class, 'ShowDetailTransaksi']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
     //Rute yang cuma bisa diakses Owner
+    Route::get('/owner/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
+    Route::get('/owner/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
@@ -97,6 +122,8 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
 
     Route::get('/presensi', [App\Http\Controllers\TblpresensiController::class, 'index']);
     Route::post('/presensi', [App\Http\Controllers\TblpresensiController::class, 'store']);
+    Route::put('/presensi/{id}', [App\Http\Controllers\TblpresensiController::class, 'update']);
+    Route::get('/presensi/{id}', [App\Http\Controllers\TblpresensiController::class, 'show']);
     
     Route::post('/createPenitip', [App\Http\Controllers\TblpenitipController::class, 'createPenitip']);
     Route::put('/updatePenitip/{id}', [App\Http\Controllers\TblpenitipController::class, 'updatePenitip']);
@@ -109,10 +136,17 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::get('/getTransactionStatusPayValid', [App\Http\Controllers\TbltransaksiController::class, 'listofTransactionStatusPembayaranValid']);
     Route::put('/MOAcceptTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOAcceptTransaction']);
     Route::put('/MORejectTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MORejectTransaction']);
+    Route::get('/getAllIngredientsAndProduct/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getAllIngredientsAndProduct']);
+
+    Route::get('/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
+    Route::get('/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     //rute yang cuma bisa diakses customer
+    route::get('/customer/transaksi-selesai', [App\Http\Controllers\TbltransaksiController::class, 'ShowTransaksiSelesai']);
+    route::put('/customer/confirm-transaksi-selesai/{id}', [App\Http\Controllers\TbltransaksiController::class, 'UpdateTransaksiSelesaiCustomer']);
+    route::get('/customer/detail-transaksi/{id}', [App\Http\Controllers\TbldetailtransaksiController::class, 'ShowDetailTransaksi']);
     Route::get('/produk-customer', [App\Http\Controllers\TblprodukController::class, 'index']);
     Route::get('/produk/on-date/{date}', [App\Http\Controllers\TblprodukController::class, 'showProductByTglAmbil']);
     Route::get('/produk-customer/{id}', [App\Http\Controllers\TblprodukController::class, 'show']);
@@ -189,10 +223,9 @@ Route::get('/jabatan', [App\Http\Controllers\TbljabatanController::class, 'index
 
 Route::group(['middleware'=>'auth:api-customer'], function() {
     Route::get('/customer', [App\Http\Controllers\TblcustomerController::class, 'index']);
-    Route::put('/customer/{id}', [App\Http\Controllers\TblcustomerController::class, 'update']);
+    Route::put('/update-customer', [App\Http\Controllers\TblcustomerController::class, 'update']);
     Route::post('/customer', [App\Http\Controllers\TblcustomerController::class, 'updateProfile']);
     
-   
     Route::post('/customer/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']); // cmn testing buat show history
 
     Route::post('/customer/detail-transaksi', [App\Http\Controllers\TbldetailtransaksiController::class, 'store']); // cmn testing buat show history
@@ -203,3 +236,5 @@ Route::group(['middleware'=>'auth:api-customer'], function() {
 
 Route::post('/uploadFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testUpload']);
 Route::post('/deleteFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testDelete']);
+
+Route::get('/getRandomProduct', [App\Http\Controllers\TblprodukController::class, 'pickRandomFourProduct']);

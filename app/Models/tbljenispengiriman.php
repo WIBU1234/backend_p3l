@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class tbljenispengiriman extends Model
 {
     use HasFactory;
+    public $timestamps = false;
     protected $table = 'tbljenispengiriman';
     protected $primaryKey = 'ID_JenisPengiriman';
     protected $fillable = [
-        "Nama_Pengiriman",
+        "Nama_Pengiriman"
     ];
 }

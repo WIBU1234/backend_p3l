@@ -10,6 +10,7 @@ class tbltransaksi extends Model
 {
     use HasFactory;
     public $timestamps = false;
+    public $incrementing = false;
     protected $table = 'tbltransaksi';
     protected $primaryKey = 'ID_Transaksi';
     protected $keyType = 'string';
@@ -25,6 +26,7 @@ class tbltransaksi extends Model
         "Total_Transaksi",
         "Tanggal_Ambil",
         "Total_Pembayaran",
+        "Tip",
         "Bukti_Pembayaran",
         "Tipe_Transaksi",
         "Total_Bayar"

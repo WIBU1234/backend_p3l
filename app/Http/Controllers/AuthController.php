@@ -18,6 +18,7 @@ class AuthController extends Controller
             'email' => 'required|email:rfc,dns|unique:tblcustomer',
             'password' => 'required',
             'Nomor_telepon' => 'required|numeric',
+            'Tanggal_Lahir' => 'required|date',
             // 'Profile' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
