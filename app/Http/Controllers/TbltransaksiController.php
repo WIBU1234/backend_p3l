@@ -875,8 +875,6 @@ class TbltransaksiController extends Controller
             'data' => $transaksi,
         ], 200);
     }
-}
-
 
     public function getTransaksiByIdCustomer($id){
         try{

@@ -14,7 +14,6 @@ class tbltransaksi extends Model
     protected $table = 'tbltransaksi';
     protected $primaryKey = 'ID_Transaksi';
     protected $keyType = 'string';
-    public $incrementing = false;
     protected $fillable = [
         "ID_Transaksi",
         "ID_Customer",
