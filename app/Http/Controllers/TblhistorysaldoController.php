@@ -175,17 +175,17 @@ class TblhistorysaldoController extends Controller
                 'Total' => $request['Saldo']
             ]);
 
-            $userFound = tblcustomer::find($user->ID_Customer)
-                ->update([
-                    'Saldo' => $user->Saldo - $request['Saldo']
-                ]);
+            // $userFound = tblcustomer::find($user->ID_Customer)
+            //     ->update([
+            //         'Saldo' => $user->Saldo - $request['Saldo']
+            //     ]);
 
             return response()->json([
                 'message' => 'Request sent',
                 'data' => 
                     [
                         $history, 
-                        $userFound
+                        // $userFound
                     ],
             ], 200);
 

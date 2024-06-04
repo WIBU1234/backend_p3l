@@ -260,6 +260,7 @@ class LaporanController extends Controller
             $data->each(function($penitipData) {
                 $productsSold = [];
                 $totalPerolehan = 0;
+                $hargaTotal = 0;
     
                 foreach ($penitipData->tbltitipan as $titipan) {
                     $productName = $titipan->tblproduk->Nama_Produk;
@@ -280,18 +281,21 @@ class LaporanController extends Controller
                             'Total_Kuantitas' => 0,
                             'Total_Perolehan' => 0,
                             'Komisi' => 0,
+                            'Yangditerima' => 0,
                         ];
                     }
     
                     $productsSold[$productName]['Total_Kuantitas'] += $totalKuantitas;
                     $productsSold[$productName]['Harga_Jual'] = $totalHargaJual;
-                    // $productsSold[$productName]['Total_Perolehan'] += $productTotalPerolehan;
                     $productsSold[$productName]['Total_Perolehan'] += $totalHargaJual * $totalKuantitas;
                     $productsSold[$productName]['Komisi'] += ($productsSold[$productName]['Total_Perolehan'] * 20 / 100);
-                    $productsSold[$productName]['Yangditerima'] = 0;
+                    $productsSold[$productName]['Yangditerima'] += ($productsSold[$productName]['Total_Perolehan'] - $productsSold[$productName]['Komisi']);
+    
+                    $hargaTotal += $productsSold[$productName]['Yangditerima'];
                 }
     
                 $penitipData->dataTable = array_values($productsSold);
+                $penitipData->Harga_Total = $hargaTotal; // Add Harga Total to dataTable
             });
     
             return $this->formatResponse($tgl_awal, $tahun, $data);
