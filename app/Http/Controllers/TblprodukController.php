@@ -330,6 +330,7 @@ class TblprodukController extends Controller
         
         $produk = tblproduk::with(['kategori'])->get();
         // Save Stock PO
+        $produkReady = [];
         $productQty = [];
         
         //kumpulin semua kuantitas produk di array productQty
@@ -339,6 +340,21 @@ class TblprodukController extends Controller
                     $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
                 } else {
                     $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+
+        foreach ($transaksiPO as $trans) {
+            foreach ($trans->products as $product) {
+                if ($product->pivot->Tipe === 0.5) { 
+                    $productId = $product->ID_Produk;
+                    $kuantitas = $product->pivot->Kuantitas;
+                    
+                    if (isset($produkReady[$productId])) {
+                        $produkReady[$productId] += $kuantitas;
+                    } else {
+                        $produkReady[$productId] = $kuantitas;
+                    }
                 }
             }
         }
@@ -356,6 +372,12 @@ class TblprodukController extends Controller
                     $prod->Stok = $limit;
                 }
             }
+        }
+
+        foreach ($produk as $prod) {
+            if (isset($produkReady[$prod->ID_Produk])) {
+                $prod->StokReady += ($productQty[$prod->ID_Produk] * 0.5);
+            } 
         }
 
         $productQty = [];
@@ -379,7 +401,8 @@ class TblprodukController extends Controller
         if (count($produk) > 0) {
             return response([
                 'message' => 'Produk found',
-                'transaksi PO' => $productQty,
+                'transaksi PO' => $transaksiPO,
+                'transaksi ready' => $transaksiReady,
                 'data' => $produk
             ], 200);
         }
@@ -404,6 +427,7 @@ class TblprodukController extends Controller
         
         $produk = tblproduk::with(['kategori'])->get();
         // Save Stock PO
+        $produkReady = [];
         $productQty = [];
         
         //kumpulin semua kuantitas produk di array productQty
@@ -417,6 +441,21 @@ class TblprodukController extends Controller
             }
         }
 
+        //Simpan nilai produk 1/2 yang tambah
+        foreach ($transaksiPO as $trans) {
+            foreach ($trans->products as $product) {
+                if ($product->pivot->Tipe === 0.5) { 
+                    $productId = $product->ID_Produk;
+                    $kuantitas = $product->pivot->Kuantitas;
+                    
+                    if (isset($produkReady[$productId])) {
+                        $produkReady[$productId] += $kuantitas;
+                    } else {
+                        $produkReady[$productId] = $kuantitas;
+                    }
+                }
+            }
+        }
         
         foreach ($produk as $prod) {
             if (isset($productQty[$prod->ID_Produk])) {
@@ -430,6 +469,12 @@ class TblprodukController extends Controller
                     $prod->Stok = $limit;
                 }
             }
+        }
+
+        foreach ($produk as $prod) {
+            if (isset($produkReady[$prod->ID_Produk])) {
+                $prod->StokReady += ($productQty[$prod->ID_Produk] * 0.5);
+            } 
         }
 
         $productQty = [];
@@ -450,13 +495,13 @@ class TblprodukController extends Controller
             } 
         }
         
-        
         //Kurangi limit dengan array kuantitas
 
         if (count($produk) > 0) {
             return response([
                 'message' => 'Produk found',
                 'transaksi PO' => $transaksiReady,
+                'transaksi ready' => $produkReady,
                 'data' => $produk
             ], 200);
         }

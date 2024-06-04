@@ -19,12 +19,15 @@ class tbltransaksi extends Model
         "ID_Customer",
         "ID_Pegawai",
         "ID_Alamat",
+        "ID_JenisPengiriman",
         "Tanggal_Transaksi",
         "Status",
         "Total_Transaksi",
         "Tanggal_Ambil",
         "Total_Pembayaran",
         "Bukti_Pembayaran",
+        "Tipe_Transaksi",
+        "Total_Bayar"
     ];
 
     public function tblcustomer() {

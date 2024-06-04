@@ -68,13 +68,16 @@ class TbltransaksiController extends Controller
                 ], 404);
             } 
 
+            $totalHarga = $storeTransaksi['Total_Transaksi'];
+
             $storeTransaksi['ID_Transaksi'] = $this->generateIDTrans();
             $storeTransaksi['ID_Customer'] = $user->ID_Customer;
             $storeTransaksi['ID_Pegawai'] = $pegawai->ID_Pegawai;
-            if ($storeTransaksi['ID_JenisPengiriman'] === 3) {
+            if ($storeTransaksi['ID_JenisPengiriman'] == 3) {
                 $storeTransaksi['Status'] = 'Menunggu Konfirmasi Admin';
             } else {
                 $storeTransaksi['Status'] = 'Menunggu Pembayaran';
+                $storeTransaksi['Total_Bayar'] = $totalHarga;
             }
 
             $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
@@ -109,6 +112,7 @@ class TbltransaksiController extends Controller
             if ($transaksi->save()) {
                 return response([
                     'message' => 'Store Transaksi Success',
+                    'status' => $transaksi->Status,
                     'poin' => $user->Poin,
                     'data' => $transaksi,
                 ], 200);
@@ -152,10 +156,13 @@ class TbltransaksiController extends Controller
             $storeTransaksi['ID_Transaksi'] = $this->generateIDTrans();
             $storeTransaksi['ID_Customer'] = $user->ID_Customer;
             $storeTransaksi['ID_Pegawai'] = $pegawai->ID_Pegawai;
-            if ($storeTransaksi['ID_JenisPengiriman'] === 3) {
+            $totalHarga = $storeTransaksi['Total_Transaksi'];
+
+            if ($storeTransaksi['ID_JenisPengiriman'] == 3) {
                 $storeTransaksi['Status'] = 'Menunggu Konfirmasi Admin';
             } else {
                 $storeTransaksi['Status'] = 'Menunggu Pembayaran';
+                $storeTransaksi['Total_Bayar'] = $totalHarga;
             }
             $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
             $storeTransaksi['Tanggal_Ambil'] = $today;
