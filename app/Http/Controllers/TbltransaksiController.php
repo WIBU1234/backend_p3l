@@ -9,6 +9,7 @@ use App\Models\tblproduk;
 use App\Models\tbltransaksi;
 use App\Models\tblcustomer;
 use App\Models\tbldetailtransaksi;
+use DateTime;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -721,6 +722,63 @@ class TbltransaksiController extends Controller
         }
     }
 
+    public function getIngredientsOfProduct($id){
+        try{
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+    
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'History Transaksi tidak ditemukan',
+                    'data' => null,
+                ]);
+            }
+
+            if ($transaksi->Status != 'diterima') {
+                return response()->json([
+                    'message' => 'Transaksi belum diterima MO',
+                    'data' => $transaksi,
+                ]);
+            }
+    
+            $customer = tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->first();
+    
+            if ($customer == null) {
+                return response()->json([
+                    'message' => 'Customer tidak ditemukan || error ID_Customer',
+                    'data' => null,
+                ]);
+            }
+    
+            $total_transaksi = $transaksi->Total_Transaksi;
+    
+            $products = tbltransaksi::with([
+                'tbldetailtransaksi.tblproduk' => function($query) {
+                    $query->with([
+                        'tblresep.tbldetailresep',
+                        'tblhampers' => function($query) {
+                            $query->with('tbldetailhampers.tblresep.tbldetailresep');
+                        }
+                    ]);
+                }
+            ])->where('ID_Transaksi', $id)->get();
+    
+            $ingredients = $this->collectIngredients($products);
+    
+            return response()->json([
+                'message' => 'Transaksi berhasil diterima',
+                'data' => [
+                    'products' => $products,
+                    'ingredients' => $ingredients,
+                ],
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     private function calculatePoints($total_transaksi, $transactionDate, $birthday) {
         $points = 0;
     
@@ -1190,6 +1248,61 @@ class TbltransaksiController extends Controller
         }
     }
 
+    public function ProcessingTransaction() {
+        try {
+            $tommorow = new DateTime('tomorrow');
+            $tommorow->format('Y-m-d');
+
+            $transaksi = tbltransaksi::where('Status', 'diterima')
+                                    ->where('Tipe_Transaksi', 0)
+                                    ->where('Tanggal_Ambil', $tommorow)
+                                    ->with(['tblcustomer', 'products', 'products.tblresep', 'products.tblresep.tbldetailresep'])->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Transaksi tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Fetch Data Success',
+                'date' => $tommorow,
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error Update Data Transaksi Expired',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function MOChangeToDiproses($id){
+        try{
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'History Transaksi tidak ditemukan',
+                    'data' => null,
+                ]);
+            }
+
+            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diproses']);
+
+            return response()->json([
+                'message' => 'Status Transaksi berhasil diubah',
+                'data' => $transaksi,
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Update Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     public function LaporanPenjualanTahunan($tahun) {
         try {
             $transaksi = DB::table('tbltransaksi as T')
@@ -1226,4 +1339,6 @@ class TbltransaksiController extends Controller
             ], 200);
         }
     }
+
+    
 }
