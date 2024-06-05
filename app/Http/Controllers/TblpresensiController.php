@@ -68,4 +68,68 @@ class TblpresensiController extends Controller
             ], 500);
         }
     }
+
+    public function update(request $request, $id) {
+        try {
+            $updateData = $request->all();
+
+            $validate = Validator::make($updateData, [
+                'ID_Pegawai' => 'required',
+                'Keterangan' => 'required'
+            ]);
+
+            if ($validate->fails())
+                return response(['message' => $validate->errors()], 400);
+
+            $presensi = tblpresensi::where('ID_Presensi', $id)->first();
+
+            if ($presensi) {
+                $presensi->update($updateData);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data presensi berhasil diupdate',
+                    'data' => $presensi
+                ], 200);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data presensi tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    public function show($id) {
+        try {
+            $presensi = tblpresensi::where('ID_Presensi', $id)->first();
+
+            if ($presensi) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data presensi berhasil diambil',
+                    'data' => $presensi
+                ], 200);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data presensi tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
 }

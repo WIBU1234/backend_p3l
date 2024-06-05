@@ -59,6 +59,7 @@ class TblpegawaiController extends Controller
 
     public function show($data) {
         $tblPegawai = tblpegawai::where('Nama_Pegawai', $data)
+                        ->orWhere('ID_Pegawai', $data)
                         ->orWhere('Nama_Jabatan', $data)
                         ->orWhere('email', $data)
                         ->orWhere('Nomor_Rekening', $data)

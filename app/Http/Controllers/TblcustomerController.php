@@ -197,7 +197,7 @@ class TblcustomerController extends Controller
         $user = Auth::user();
         $tblcustomer = tblcustomer::find($user->ID_Customer);
     
-        if (is_null($tblcustomer)) {
+        if ($tblcustomer == null) {
             return response()->json([
                 'message' => 'User Not Found',
             ], 404);
@@ -216,14 +216,25 @@ class TblcustomerController extends Controller
         }
     
         if ($request->hasFile('Profile')) {
-            $uploadFolder = 'customer';
+            // $uploadFolder = 'customer';
+            // $image = $request->file('Profile');
+            // $image_uploaded_path = $image->store($uploadFolder, 'public');
+            // $uploadImageResponse = basename($image_uploaded_path);
+    
+            // Storage::disk('public')->delete('customer/'.$tblcustomer->Profile);
+    
+            // $updateProfile['Profile'] = $uploadImageResponse;
             $image = $request->file('Profile');
-            $image_uploaded_path = $image->store($uploadFolder, 'public');
-            $uploadImageResponse = basename($image_uploaded_path);
-    
-            Storage::disk('public')->delete('customer/'.$tblcustomer->Profile);
-    
-            $updateProfile['Profile'] = $uploadImageResponse;
+            $originalName = $image->getClientOriginalName();
+            
+            if($tblcustomer->Profile !== null){
+                $cloudinaryController = new cloudinaryController();
+                $cloudinaryController->deleteImageFromCloudinary($tblcustomer->Profile);
+            }
+
+            $cloudinaryController = new cloudinaryController();
+            $public_id = $cloudinaryController->sendImageToCloudinary($image, $originalName);
+            $updateProfile['Profile'] = $public_id;
             $tblcustomer->update($updateProfile);
         } else {
             return response ([
@@ -237,9 +248,10 @@ class TblcustomerController extends Controller
         ], 200);
     }    
 
-    public function update(request $request, $id) {
+    public function update(request $request) {
         try {
-            $tblcustomer = tblcustomer::find($id)->first();
+            $user = Auth::user();
+            $tblcustomer = tblcustomer::find($user->ID_Customer);
             $updatecustomer = $request->all();
             $validate = Validator::make($updatecustomer, [
                 'Nama_Customer' => 'required',
@@ -256,7 +268,7 @@ class TblcustomerController extends Controller
             $tblcustomer->update($updatecustomer);
 
             return response()->json([
-                'message' => 'User Updated',
+                'message' => 'Berhasil Mengupdate User ' . $tblcustomer->Nama_Customer,
                 'data' => $tblcustomer
             ], 200);
         } catch (\Exception $e) {

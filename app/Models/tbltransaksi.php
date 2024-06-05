@@ -9,19 +9,24 @@ class tbltransaksi extends Model
 {
     use HasFactory;
     public $timestamps = false;
+    public $incrementing = false;
     protected $table = 'tbltransaksi';
-    protected $PrimaryKey = 'ID_Transaksi';
+    protected $primaryKey = 'ID_Transaksi';
+    protected $keyType = 'string';
     protected $fillable = [
         "ID_Transaksi",
         "ID_Customer",
         "ID_Pegawai",
         "ID_Alamat",
+        "ID_JenisPengiriman",
         "Tanggal_Transaksi",
         "Status",
         "Total_Transaksi",
         "Tanggal_Ambil",
         "Total_Pembayaran",
+        "Tip",
         "Bukti_Pembayaran",
+        "Tipe_Transaksi",
     ];
 
     public function tblcustomer() {
@@ -38,5 +43,9 @@ class tbltransaksi extends Model
 
     public function tbldetailtransaksi() {
         return $this->hasMany(tbldetailtransaksi::class, 'ID_Transaksi', 'ID_Transaksi');
+    }
+
+    public function tbljenispengiriman() {
+        return $this->belongsTo(tbljenispengiriman::class, 'ID_JenisPengiriman', 'ID_JenisPengiriman');
     }
 }

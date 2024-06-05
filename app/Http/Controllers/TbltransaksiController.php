@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\tblalamat;
 use App\Models\tblpenggunaanbahanbaku;
 use App\Models\tblproduk;
 use App\Models\tbltransaksi;
@@ -12,6 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class TbltransaksiController extends Controller
 {
@@ -122,6 +124,7 @@ class TbltransaksiController extends Controller
             if ($transaksi->count() == 0) {
                 return response()->json([
                     'message' => 'Transaksi tidak ditemukan',
+                    'data' => null,
                 ]);
             }
     
@@ -161,6 +164,126 @@ class TbltransaksiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Fetch Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function getTransaksiOnProcess () {
+        try {
+            $transaksi = tbltransaksi::with('tblpegawai', 'tblcustomer', 'tbljenispengiriman')
+                        ->where('Status', 'Menunggu Pembayaran')
+                        ->where('Total_Pembayaran', '!=' , 0)
+                        // ->where('ID_JenisPengiriman', '!=', 1)
+                        ->where('Bukti_Pembayaran', '!=', null)
+                        ->get();
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message'=> 'Tidak ada transaksi yang sedang berlangsung',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Fetch Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function updateStatusTransaksi ($id) {
+        try {
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'Transaksi Tidak Ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            $transaksi->Status = 'Pembayaran Valid';
+            $transaksi->Tip = $transaksi->Total_pembayaran - $transaksi->Total_Bayar;
+            $transaksi->save();
+
+            return response()->json([
+                'message' => 'Update Status Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Update Status Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    } 
+
+    public function showTransaksiNoBayar() {
+        try {
+            $transaksi = tbltransaksi::join('tblalamat', 'tbltransaksi.ID_Alamat', '=', 'tblalamat.ID_Alamat')
+                        ->with('tblpegawai', 'tblcustomer', 'tbljenispengiriman')
+                        ->where('tblalamat.Jarak', '!=', 0)
+                        ->where('tbltransaksi.Status', 'Menunggu Konfirmasi Admin')
+                        ->where('ID_JenisPengiriman', '>=', 1)
+                        ->where('Total_Bayar', '=', null)
+                        ->where('Bukti_Pembayaran', '=', null)
+                        ->orderBy('Tanggal_Transaksi')
+                        ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message'=> 'Tidak ada transaksi yang belum dibayar',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Fetch Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function updateTotalBayarTransaksi ($id) {
+        try {
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'Transaksi Tidak Ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            $biaya = tblalamat::where('ID_Alamat', $transaksi->ID_Alamat)->first();
+            if ($biaya->Biaya == null) {
+                return response()->json([
+                    'message' => 'Biaya Ongkir belum diinputkan',
+                    'data' => null
+                ]);
+            }
+
+            $transaksi->Total_Bayar = $biaya->Biaya + $transaksi->Total_Transaksi;
+            $transaksi->Status = 'Menunggu Pembayaran';
+            $transaksi->save();
+
+            return response()->json([
+                'message' => 'Update Total Bayar Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Update Total Bayar Transaksi Failed',
                 'error' => $e->getMessage(),
             ], 400);
         }
@@ -615,6 +738,276 @@ class TbltransaksiController extends Controller
                 'message' => 'Sending proof failed',
                 'data' => $e->getMessage(),
             ], 400);
+        }
+    }
+
+    public function ShowTransaksiDiproses () {
+        try {
+            $transaksi = tbltransaksi::join('tblcustomer', 'tbltransaksi.ID_Customer', '=', 'tblcustomer.ID_Customer')
+                    ->join('tbljenispengiriman', 'tbltransaksi.ID_JenisPengiriman', '=', 'tbljenispengiriman.ID_JenisPengiriman')
+                    ->where('tbltransaksi.Status', '=', 'Diproses')
+                    ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Transaksi dalam Status Sedang Diproses Tidak ada',
+                    'data' => null,
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Transaksi dalam Status Sedang Diproses',
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function UpdateStatusKirimTransaksi ($id) {
+        try {
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'Data Transaksi Tidak Ditemukan',
+                    'data' => null,
+                ], 404);
+            }
+
+            if($transaksi->ID_JenisPengiriman == 1) {
+                $transaksi->Status = 'Siap Dipick-Up';
+            } else {
+                $transaksi->Status = 'Siap Dikirim';
+            }
+
+            $transaksi->save();
+
+            return response()->json([
+                'message' => 'Update Status Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Update Status Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function ShowTransaksiSiapKirim () {
+        try {
+            $transaksi = tbltransaksi::join('tblcustomer', 'tbltransaksi.ID_Customer', '=', 'tblcustomer.ID_Customer')
+                    ->join('tbljenispengiriman', 'tbltransaksi.ID_JenisPengiriman', '=', 'tbljenispengiriman.ID_JenisPengiriman')
+                    ->where('tbltransaksi.Status', '=', 'Siap Dipick-Up')
+                    ->orWhere('tbltransaksi.Status', '=', 'Siap Dikirim')
+                    ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Transaksi dalam Status Sedang Diproses Tidak ada',
+                    'data' => null,
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Transaksi dalam Status Sedang Diproses',
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function UpdateStatusSelesaiTransaksi ($id) {
+        try {
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'Data Transaksi Tidak Ditemukan',
+                    'data' => null,
+                ], 404);
+            }
+
+            if($transaksi->ID_JenisPengiriman == 1) {
+                $transaksi->Status = 'Selesai';
+            } else {
+                $transaksi->Status = 'Dibawa Kurir';
+            }
+
+            $transaksi->save();
+
+            return response()->json([
+                'message' => 'Update Status Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Update Status Transaksi Failed',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function ShowTransaksiSelesai() {
+        try {
+            $user = Auth::user();
+            $transaksi = tbltransaksi::where('ID_Transaksi', $user->ID_Customer)
+                        ->orwhere('Status', 'Selesai')
+                        ->orWhere('Status', 'Dibawa Kurir')
+                        ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Data Transaksi Kosong',
+                    'data' => null,
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Data Transaksi',
+                'data' => $transaksi,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function UpdateTransaksiSelesaiCustomer($id) {
+        try {
+            $user = Auth::user();
+            $transaksi = tbltransaksi::where('ID_Customer', $user->ID_Customer)
+                        ->where('ID_Transaksi', $id)
+                        ->first();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Data Transaksi Tidak Ditemukan',
+                    'data' => null,
+                ], 404);
+            }
+
+            if ($transaksi->Status != 'Dibawa Kurir') {
+                return response()->json([
+                    'message' => 'Status Transaksi Belum Dibawa Kurir',
+                    'data' => null,
+                ], 404);
+            }
+
+            $transaksi->Status = 'Selesai';
+            $transaksi->save();
+
+            return response()->json([
+                'message' => 'Update Status Transaksi Success',
+                'data' => $transaksi,
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error Updating Data Customer',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function showTransaksiExpired() {
+        try {
+            $transaksi = tbltransaksi::whereRaw('Tanggal_Pelunasan > DATE_SUB(Tanggal_Ambil, INTERVAL 1 DAY)')
+                        ->where('Status', '=', 'Menunggu Pembayaran')
+                        ->get();
+            
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Data Transaksi Telat Bayar Kosong',
+                    'data' => null,
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Data Transaksi Telat Bayar',
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error Get Data Transaksi Expired',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function PutTransaksiTelatBayar($id) {
+        try {
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Tidak Menemukan Data Transaksi dengan ID ' . $id,
+                    'data' => null,
+                ], 404);
+            }
+
+            $transaksi->Status = 'Batal';
+            $transaksi->save();
+
+            return response()->json([
+                'message' => 'Berhasil Mengupdate Data Transaksi dengan ID ' . $id,
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error Update Data Transaksi Expired',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function LaporanPenjualanTahunan($tahun) {
+        try {
+            $transaksi = DB::table('tbltransaksi as T')
+            ->join('tbldetailtransaksi as DT', 'DT.ID_Transaksi', '=', 'T.ID_Transaksi')
+            ->select(DB::raw('extract(month from T.Tanggal_Ambil) as bulan'), DB::raw('SUM(DT.Kuantitas) as total_penjualan'), DB::raw('SUM(DT.Sub_Total) as total_pendapatan'))
+            ->where('status', 'Selesai')
+            ->whereNotNull('T.Tanggal_Ambil')
+            ->whereYear('T.Tanggal_Ambil', $tahun)
+            ->groupBy(DB::raw('extract(month from T.Tanggal_Ambil)'))
+            ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Laporan untuk tahun ' . $tahun . ' kosong',
+                    'data' => null,
+                ], 200);
+            }
+
+            $laporanTransaksi = ([
+                'Tahun' => $tahun,
+                'Tanggal_Cetak' => date('Y-m-d'),
+                'data' => $transaksi,
+                'Total_Penjualan' => $transaksi->sum('total_pendapatan'),
+            ]);
+
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Laporan Penjualan Bulanan',
+                'data' => $laporanTransaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error On Making Summary Penjualanan Bulanan',
+                'data' => $e->getMessage(),
+            ], 200);
         }
     }
 }
