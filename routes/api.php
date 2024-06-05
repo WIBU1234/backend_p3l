@@ -104,6 +104,12 @@ Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
     //Rute yang cuma bisa diakses Owner
     Route::get('/owner/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
     Route::get('/owner/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
+
+    Route::post('/OlaporanPresensiKaryawan', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensi']);
+    Route::post('/OlaporanPresensiKaryawanByBulanTahun', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensiByBulanTahun']);
+    Route::post('/OlaporanPemasukanPengeluaran', [App\Http\Controllers\LaporanController::class, 'getLaporanPemasukanPengeluaranBulanan']);
+    Route::post('/OlaporanPemasukanPengeluaranByBulanTahun', [App\Http\Controllers\LaporanController::class, 'rekapTransaksiPenitipBulan']);
+    Route::post('/OlaporanPenitipan', [App\Http\Controllers\LaporanController::class, 'rekapTransaksiPenitipBulan']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
@@ -140,6 +146,12 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::put('/MOAcceptTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOAcceptTransaction']);
     Route::put('/MORejectTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MORejectTransaction']);
     Route::get('/getAllIngredientsAndProduct/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getAllIngredientsAndProduct']);
+
+    Route::post('/laporanPresensiKaryawan', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensi']);
+    Route::post('/laporanPresensiKaryawanByBulanTahun', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensiByBulanTahun']);
+    Route::post('/laporanPemasukanPengeluaran', [App\Http\Controllers\LaporanController::class, 'getLaporanPemasukanPengeluaranBulanan']);
+    Route::post('/laporanPemasukanPengeluaranByBulanTahun', [App\Http\Controllers\LaporanController::class, 'rekapTransaksiPenitipBulan']);
+    Route::post('/laporanPenitipan', [App\Http\Controllers\LaporanController::class, 'rekapTransaksiPenitipBulan']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
@@ -156,6 +168,9 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
 
     Route::get('/getTransaksiByIdCustomer/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiByIdCustomer']);
     Route::post('/sendProofPayment', [App\Http\Controllers\TbltransaksiController::class, 'sendProofPayment']);
+
+    Route::post('/customerSaldo', [App\Http\Controllers\TblhistorysaldoController::class, 'customerRequestSaldo']);
+    Route::get('/customerSaldo', [App\Http\Controllers\TblhistorysaldoController::class, 'customerGetAllHistory']);
 });
 
 // Temporary Seto

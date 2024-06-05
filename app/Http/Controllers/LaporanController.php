@@ -75,48 +75,6 @@ class LaporanController extends Controller
         return [$pengeluaran, $penjualan];
     }
 
-    private function calculateLaporan($pengeluaran, $penjualan, $totalSubTotalBahanBaku, $dataPegawai)
-    {
-        return [
-            'Penjualan' => [
-                'Pemasukan' => $penjualan->sum('Total_Transaksi'),
-                'Pengeluaran' => 0,
-            ],
-            'Tip' => [
-                'Pemasukan' => $penjualan->sum('Tip'),
-                'Pengeluaran' => 0,
-            ],
-            'Listrik' => [
-                'Pemasukan' => 0,
-                'Pengeluaran' => $pengeluaran->where('Nama', 'Listrik')->sum('Harga'),
-            ],
-            'Gaji Karyawan' => [
-                'Pemasukan' => 0,
-                'Pengeluaran' => $dataPegawai->sum('total'),
-            ],
-            'Bahan Baku' => [
-                'Pemasukan' => 0,
-                'Pengeluaran' => $totalSubTotalBahanBaku,
-            ],
-            'Iuran RT' => [
-                'Pemasukan' => 0,
-                'Pengeluaran' => $pengeluaran->where('Nama', 'Iuran RT')->sum('Harga'),
-            ],
-            'Bensin' => [
-                'Pemasukan' => 0,
-                'Pengeluaran' => $pengeluaran->where('Nama', 'Bensin')->sum('Harga'),
-            ],
-            'Gas' => [
-                'Pemasukan' => 0,
-                'Pengeluaran' => $pengeluaran->where('Nama', 'Gas')->sum('Harga'),
-            ],
-            'Total' => [
-                'Pemasukan' => $penjualan->sum('Total_Transaksi') + $penjualan->sum('Tip'),
-                'Pengeluaran' => $pengeluaran->where('Nama', 'Listrik')->sum('Harga') + $dataPegawai->sum('total') + $totalSubTotalBahanBaku + $pengeluaran->where('Nama', 'Iuran RT')->sum('Harga') + $pengeluaran->where('Nama', 'Bensin')->sum('Harga') + $pengeluaran->where('Nama', 'Gas')->sum('Harga'),
-            ],
-        ];
-    }
-
     public function getLaporanPresensi(Request $request)
     {
         $validationError = $this->validateRequest($request, [
@@ -174,6 +132,46 @@ class LaporanController extends Controller
         }
     }
 
+    private function calculateLaporan($pengeluaran, $penjualan, $totalSubTotalBahanBaku, $dataPegawai)
+    {
+        // Mendapatkan semua nama kategori pengeluaran yang unik
+        $kategoriPengeluaran = $pengeluaran->pluck('Nama')->unique();
+    
+        $laporan = [
+            'Penjualan' => [
+                'Pemasukan' => $penjualan->sum('Total_Transaksi'),
+                'Pengeluaran' => 0,
+            ],
+            'Tip' => [
+                'Pemasukan' => $penjualan->sum('Tip'),
+                'Pengeluaran' => 0,
+            ],
+        ];
+    
+        foreach ($kategoriPengeluaran as $kategori) {
+            $laporan[$kategori] = [
+                'Pemasukan' => 0,
+                'Pengeluaran' => $pengeluaran->where('Nama', $kategori)->sum('Harga'),
+            ];
+        }
+    
+        // Khusus untuk 'Gaji Karyawan' dan 'Bahan Baku'
+        if ($kategoriPengeluaran->contains('Gaji Karyawan')) {
+            $laporan['Gaji Karyawan']['Pengeluaran'] = $dataPegawai->sum('total');
+        }
+        if ($kategoriPengeluaran->contains('Bahan Baku')) {
+            $laporan['Bahan Baku']['Pengeluaran'] = $totalSubTotalBahanBaku;
+        }
+    
+        // Hitung Total
+        $laporan['Total'] = [
+            'Pemasukan' => $penjualan->sum('Total_Transaksi') + $penjualan->sum('Tip'),
+            'Pengeluaran' => array_sum(array_column($laporan, 'Pengeluaran')),
+        ];
+    
+        return $laporan;
+    }     
+
     public function getLaporanPemasukanPengeluaranBulanan(Request $request)
     {
         try {
@@ -192,7 +190,7 @@ class LaporanController extends Controller
             [$tgl_awal, $tgl_akhir] = $this->getDateRange($bulan, $tahun);
         
             [$pengeluaran, $penjualan] = $this->getPengeluaranAndPenjualan($tgl_awal, $tgl_akhir);
-
+    
             $dataPegawai = tblpegawai::with(['tblpresensi' => function ($query) use ($tgl_awal, $tgl_akhir) {
                 $query->whereBetween('Tanggal', [$tgl_awal, $tgl_akhir]);
             }])->whereHas('tblpresensi', function ($query) use ($tgl_awal, $tgl_akhir) {
@@ -202,17 +200,17 @@ class LaporanController extends Controller
             $totalHari = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
     
             $this->calculatePresensi($dataPegawai, $totalHari);
-
+    
             $dataTransaksiBahanBaku = tbltransaksibahanbaku::with('bahanbaku')
                 ->whereBetween('Tanggal', [$tgl_awal, $tgl_akhir])
                 ->get();
-
+    
             $totalSubTotalBahanBaku = $dataTransaksiBahanBaku->sum(function($transaksi){
                 return $transaksi->bahanbaku->sum('pivot.Sub_Total');
             });
-
+    
             $tableLaporan = $this->calculateLaporan($pengeluaran, $penjualan, $totalSubTotalBahanBaku, $dataPegawai);
-
+    
             return response()->json([
                 'status' => 'success',
                 'data' => [
@@ -227,14 +225,14 @@ class LaporanController extends Controller
                     ],
                 ],
             ], 200);
-
+    
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Fetch Laporan Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }
-    }
+    }    
 
     public function rekapTransaksiPenitipBulan(Request $request)
     {
