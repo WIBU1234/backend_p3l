@@ -68,7 +68,8 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::get('/customerTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiToProduk']);
 
     Route::get('/history', [App\Http\Controllers\TblhistorysaldoController::class, 'getAllHistoryTransaction']);
-    Route::put('/history/{id}', [App\Http\Controllers\TblhistorysaldoController::class, 'adminAcceptHistory']);
+    Route::put('/historyAcceptSaldo/{id}', [App\Http\Controllers\TblhistorysaldoController::class, 'adminAcceptHistory']);
+    Route::delete('/historyRejectSaldo/{id}', [App\Http\Controllers\TblhistorysaldoController::class, 'adminRejectHistory']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {

@@ -96,6 +96,41 @@ class TblhistorysaldoController extends Controller
         }
     }
 
+    public function adminRejectHistory($id){
+        try{
+            $history = tblhistorysaldo::with('tblcustomer')
+                ->where('ID_History', $id)
+                ->first();
+
+            if(!$history){
+                return response()->json([
+                    'message' => 'Data not found',
+                    'data' => []
+                ], 404);
+            }
+
+            if($history->Tanggal != null){
+                return response()->json([
+                    'message' => 'Data already accepted',
+                    'data' => $history
+                ], 400);
+            }
+
+            $history->delete();
+
+            return response()->json([
+                'message' => 'Data rejected',
+                'data' => $history
+            ], 200);
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Failed to reject data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function customerGetAllHistory(){
         try{
             $user = Auth::user();
@@ -174,11 +209,6 @@ class TblhistorysaldoController extends Controller
                 'Tanggal' => null,
                 'Total' => $request['Saldo']
             ]);
-
-            // $userFound = tblcustomer::find($user->ID_Customer)
-            //     ->update([
-            //         'Saldo' => $user->Saldo - $request['Saldo']
-            //     ]);
 
             return response()->json([
                 'message' => 'Request sent',
