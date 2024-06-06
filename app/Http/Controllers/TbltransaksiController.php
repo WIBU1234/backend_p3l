@@ -406,12 +406,11 @@ class TbltransaksiController extends Controller
                     ->update(['Stok' => $iniBahanBaku->Stok - $ingredient['Kuantitas']]);
             }
 
-            // tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diterima']);
+            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diterima']);
             $customer->Poin += $points;
             $customer->save();
 
-            var_dump($customer->Poin);
-    
+
             return response()->json([
                 'message' => 'Transaksi berhasil diterima',
                 'data' => [
