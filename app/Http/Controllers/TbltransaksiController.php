@@ -758,6 +758,7 @@ class TbltransaksiController extends Controller
                     ->join('tbljenispengiriman', 'tbltransaksi.ID_JenisPengiriman', '=', 'tbljenispengiriman.ID_JenisPengiriman')
                     ->where('tbltransaksi.Status', '=', 'Siap Dipick-Up')
                     ->orWhere('tbltransaksi.Status', '=', 'Siap Dikirim')
+                    ->orWhere('tbltransaksi.Status', '=', 'diterima')
                     ->get();
 
             if ($transaksi->count() == 0) {
@@ -814,9 +815,36 @@ class TbltransaksiController extends Controller
     public function ShowTransaksiSelesai() {
         try {
             $user = Auth::user();
-            $transaksi = tbltransaksi::where('ID_Transaksi', $user->ID_Customer)
+            $transaksi = tbltransaksi::where('ID_Customer', $user->ID_Customer)
                         ->orwhere('Status', 'Selesai')
                         ->orWhere('Status', 'Dibawa Kurir')
+                        ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Data Transaksi Kosong',
+                    'data' => null,
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Data Transaksi',
+                'data' => $transaksi,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function ShowTransaksiDibawaKurir() {
+        try {
+            $user = Auth::user();
+            $transaksi = tbltransaksi::where('ID_Customer', $user->ID_Customer)
+                        ->Where('Status', 'Dibawa Kurir')
                         ->get();
 
             if ($transaksi->count() == 0) {
@@ -845,8 +873,8 @@ class TbltransaksiController extends Controller
             $transaksi = tbltransaksi::where('ID_Customer', $user->ID_Customer)
                         ->where('ID_Transaksi', $id)
                         ->first();
-
-            if ($transaksi->count() == 0) {
+            var_dump($transaksi);
+            if ($transaksi->count() === 0) {
                 return response()->json([
                     'message' => 'Data Transaksi Tidak Ditemukan',
                     'data' => null,
@@ -936,8 +964,16 @@ class TbltransaksiController extends Controller
     public function LaporanPenjualanTahunan($tahun) {
         try {
             $transaksi = DB::table('tbltransaksi as T')
-            ->join('tbldetailtransaksi as DT', 'DT.ID_Transaksi', '=', 'T.ID_Transaksi')
-            ->select(DB::raw('extract(month from T.Tanggal_Ambil) as bulan'), DB::raw('SUM(DT.Kuantitas) as total_penjualan'), DB::raw('SUM(DT.Sub_Total) as total_pendapatan'))
+                ->leftJoin(DB::raw('
+                (SELECT ID_Transaksi, SUM(Kuantitas) AS Total_Kuantitas
+                FROM tbldetailtransaksi
+                GROUP BY ID_Transaksi) AS DT
+            '), 'T.ID_Transaksi', '=', 'DT.ID_Transaksi')
+            ->select(
+                DB::raw('extract(month from T.Tanggal_Ambil) as bulan'),
+                DB::raw('SUM(T.Total_Pembayaran) as total_pendapatan'),
+                DB::raw('COALESCE(SUM(DT.Total_Kuantitas), 0) as total_penjualan')
+            )
             ->where('status', 'Selesai')
             ->whereNotNull('T.Tanggal_Ambil')
             ->whereYear('T.Tanggal_Ambil', $tahun)
