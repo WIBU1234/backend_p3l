@@ -104,6 +104,8 @@ Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
     //Rute yang cuma bisa diakses Owner
     Route::get('/owner/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
     Route::get('/owner/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
+
+    Route::get('/owner/laporan-penjualan-bulanan/{bulan}/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'laporanPenjualanBulanan']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
@@ -145,6 +147,10 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::put('/processing-product/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOChangeToDiproses']);
     Route::get('/getTransactionAccepted', [App\Http\Controllers\TbltransaksiController::class, 'ProcessingTransaction']);
 
+    Route::get('/penggunaan-bahanbaku', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'index']);
+
+    
+    Route::get('/laporan-penjualan-bulanan/{bulan}/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'laporanPenjualanBulanan']);
     Route::get('/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
     Route::get('/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
 

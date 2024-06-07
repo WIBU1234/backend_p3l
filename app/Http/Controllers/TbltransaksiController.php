@@ -37,15 +37,6 @@ class TbltransaksiController extends Controller
         ], 200);
     }
 
-    
-
-
-    //Pemesanan
-    //Generate ID Transaksi
-    //Status auto Menunggu Pembayaran dan Total Bayar 0
-    //Nambah poin customer
-    //Ngurangin total transaksi klo customer pake poin
-
     public function store(request $request) {
         try {
             $lusa = Carbon::now()->addDays(2)->format('Y-m-d');
@@ -644,7 +635,7 @@ class TbltransaksiController extends Controller
                     ->update(['Stok' => $iniBahanBaku->Stok - $ingredient['Kuantitas']]);
             }
 
-            // tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diterima']);
+            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diterima']);
             $customer->Poin += $points;
             $customer->save();
 
@@ -734,19 +725,19 @@ class TbltransaksiController extends Controller
         try{
             $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
     
-            if ($transaksi == null) {
-                return response()->json([
-                    'message' => 'History Transaksi tidak ditemukan',
-                    'data' => null,
-                ]);
-            }
+            // if ($transaksi == null) {
+            //     return response()->json([
+            //         'message' => 'History Transaksi tidak ditemukan',
+            //         'data' => null,
+            //     ]);
+            // }
 
-            if ($transaksi->Status != 'diterima') {
-                return response()->json([
-                    'message' => 'Transaksi belum diterima MO',
-                    'data' => $transaksi,
-                ]);
-            }
+            // if ($transaksi->Status != 'diterima') {
+            //     return response()->json([
+            //         'message' => 'Transaksi belum diterima MO',
+            //         'data' => $transaksi,
+            //     ]);
+            // }
     
             $customer = tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->first();
     
@@ -1275,7 +1266,8 @@ class TbltransaksiController extends Controller
             $tommorow = new DateTime('tomorrow');
             $tommorow->format('Y-m-d');
 
-            $transaksi = tbltransaksi::where('Status', 'diterima')
+            $transaksi = tbltransaksi::whereIn('Status', ['Menunggu Pembayaran', 'Pembayaran Valid', 'Menunggu Konfirmasi Admin', 'diterima'])
+                                    ->whereNotIn('Status', ['Ditolak', 'Diproses', 'Siap Di-Pickup', 'Sedang Dikirim Kurir', 'Sudah Di-Pickup', 'Selesai'])
                                     ->where('Tipe_Transaksi', 0)
                                     ->where('Tanggal_Ambil', $tommorow)
                                     ->with(['tblcustomer', 'products', 'products.tblresep', 'products.tblresep.tbldetailresep'])->get();
@@ -1310,6 +1302,35 @@ class TbltransaksiController extends Controller
                     'data' => null,
                 ]);
             }
+
+            //$total_transaksi = $transaksi->Total_Transaksi;
+            //$points = $this->calculatePoints($total_transaksi, $transaksi->Tanggal_Transaksi, $customer->Tanggal_Lahir);
+    
+            // $products = tbltransaksi::with([
+            //     'tbldetailtransaksi.tblproduk' => function($query) {
+            //         $query->with([
+            //             'tblresep.tbldetailresep',
+            //             'tblhampers' => function($query) {
+            //                 $query->with('tbldetailhampers.tblresep.tbldetailresep');
+            //             }
+            //         ]);
+            //     }
+            // ])->where('ID_Transaksi', $id)->get();
+    
+            // $ingredients = $this->collectIngredients($products);
+
+            // foreach ($ingredients as $ingredient) {
+            //     tblpenggunaanbahanbaku::create([
+            //         'ID_Bahan_Baku' => $ingredient['ID_Bahan_Baku'],
+            //         'Kuantitas' => $ingredient['Kuantitas'],
+            //         'Tanggal' => Carbon::now(),
+            //     ]);
+            //     $iniBahanBaku = tblbahanbaku::where('ID_Bahan_Baku', $ingredient['ID_Bahan_Baku'])->first();
+
+            //     tblbahanbaku::where('ID_Bahan_Baku', $ingredient['ID_Bahan_Baku'])
+            //         ->first()
+            //         ->update(['Stok' => $iniBahanBaku->Stok - $ingredient['Kuantitas']]);
+            // }
 
             tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diproses']);
 
@@ -1362,5 +1383,55 @@ class TbltransaksiController extends Controller
         }
     }
 
-    
+    public function laporanPenjualanBulanan($bulan, $tahun) {
+        try {
+            $transaksi = tbltransaksi::whereMonth('Tanggal_Transaksi', $bulan)
+                                  ->whereYear('Tanggal_Transaksi', $tahun)
+                                  ->where('Status', 'Selesai')
+                                  ->with(['tblcustomer', 'products'])
+                                  ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Laporan untuk bulan ' . $bulan . ' tahun ' . $tahun . ' kosong',
+                    'data' => null,
+                ], 200);
+            }
+
+            $groupedTransactions = [];
+            foreach ($transaksi as $trans) {
+                foreach ($trans->products as $product) {
+                    if (!isset($groupedTransactions[$product->Nama_Produk])) {
+                        $groupedTransactions[$product->Nama_Produk] = [
+                            'harga' => $product->Harga,
+                            'total_terjual' => 0,
+                            'total_pendapatan' => 0,
+                            'transaksi' => [],
+                        ];
+                    }
+                    $groupedTransactions[$product->Nama_Produk]['total_terjual'] += $product->pivot->Kuantitas;
+                    $groupedTransactions[$product->Nama_Produk]['total_pendapatan'] += $product->pivot->Sub_Total;
+                    $groupedTransactions[$product->Nama_Produk]['transaksi'][] = $trans;
+                }
+            }
+
+            $laporanTransaksi = [
+                'Tahun' => $tahun,
+                'Bulan' => $bulan,
+                'Tanggal_Cetak' => date('Y-m-d'),
+                'data' => $groupedTransactions,
+                'Total_Penjualan' => $transaksi->sum('Total_Transaksi'),
+            ];
+
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Laporan Penjualan Bulanan',
+                'data' => $laporanTransaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error On Making Summary Penjualanan Bulanan',
+                'data' => $e->getMessage(),
+            ], 200);
+        }
+    }
 }
