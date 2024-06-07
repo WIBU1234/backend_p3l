@@ -816,29 +816,30 @@ class TbltransaksiController extends Controller
         try {
             $user = Auth::user();
             $transaksi = tbltransaksi::where('ID_Customer', $user->ID_Customer)
-                        ->orwhere('Status', 'Selesai')
-                        ->orWhere('Status', 'Dibawa Kurir')
-                        ->get();
-
+                            ->where(function ($query) {
+                                $query->where('Status', 'Dibawa Kurir')
+                                      ->orWhere('Status', 'Selesai');
+                            })->get();
+    
             if ($transaksi->count() == 0) {
                 return response()->json([
                     'message' => 'Data Transaksi Kosong',
                     'data' => null,
                 ], 404);
             }
-
+    
             return response()->json([
                 'message' => 'Berhasil Mendapatkan Data Transaksi',
                 'data' => $transaksi,
             ], 200);
-
+    
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Fetch Transaksi Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }
-    }
+    }    
 
     public function ShowTransaksiDibawaKurir() {
         try {
