@@ -143,6 +143,7 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     //rute yang cuma bisa diakses customer
+    route::get('/customer/transaksi-dibawa-kurir', [App\Http\Controllers\TbltransaksiController::class, 'ShowTransaksiDibawaKurir']);
     route::get('/customer/transaksi-selesai', [App\Http\Controllers\TbltransaksiController::class, 'ShowTransaksiSelesai']);
     route::put('/customer/confirm-transaksi-selesai/{id}', [App\Http\Controllers\TbltransaksiController::class, 'UpdateTransaksiSelesaiCustomer']);
     route::get('/customer/detail-transaksi/{id}', [App\Http\Controllers\TbldetailtransaksiController::class, 'ShowDetailTransaksi']);
