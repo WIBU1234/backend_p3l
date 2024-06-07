@@ -21,4 +21,9 @@ class tblpresensi extends Model
     {
         return $this->belongsTo(tblpegawai::class, 'ID_Pegawai', 'ID_Pegawai');
     }
+
+    public function tblpegawai()
+    {
+        return $this->belongsTo(tblpegawai::class, 'ID_Pegawai', 'ID_Pegawai');
+    }
 }

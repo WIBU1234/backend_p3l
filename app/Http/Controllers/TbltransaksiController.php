@@ -7,6 +7,7 @@ use App\Models\tblpenggunaanbahanbaku;
 use App\Models\tblproduk;
 use App\Models\tbltransaksi;
 use App\Models\tblcustomer;
+use App\Models\tblbahanbaku;
 use App\Models\tbldetailtransaksi;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
@@ -318,9 +319,9 @@ class TbltransaksiController extends Controller
     public function listofTransactionStatusPembayaranValid(){
         try{
             $transaksi = tbltransaksi::with(['tblcustomer'])
-                            ->where('Status', 'Pembayaran Valid')
-                            ->orderBy('Tanggal_Transaksi', 'asc')
-                            ->get();
+                    ->whereIn('Status', ['Pembayaran Valid', 'diterima'])
+                    ->orderBy('Tanggal_Transaksi', 'asc')
+                    ->get();
 
             if ($transaksi->count() == 0) {
                 return response()->json([
@@ -398,12 +399,18 @@ class TbltransaksiController extends Controller
                     'Kuantitas' => $ingredient['Kuantitas'],
                     'Tanggal' => Carbon::now(),
                 ]);
+                $iniBahanBaku = tblbahanbaku::where('ID_Bahan_Baku', $ingredient['ID_Bahan_Baku'])->first();
+
+                tblbahanbaku::where('ID_Bahan_Baku', $ingredient['ID_Bahan_Baku'])
+                    ->first()
+                    ->update(['Stok' => $iniBahanBaku->Stok - $ingredient['Kuantitas']]);
             }
 
             tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diterima']);
             $customer->Poin += $points;
             $customer->save();
-    
+
+
             return response()->json([
                 'message' => 'Transaksi berhasil diterima',
                 'data' => [
@@ -486,17 +493,26 @@ class TbltransaksiController extends Controller
 
     private function calculatePoints($total_transaksi, $transactionDate, $birthday) {
         $points = 0;
-    
-        if ($total_transaksi >= 1000000) {
-            $points = 200;
-        } elseif ($total_transaksi >= 500000) {
-            $points = 75;
-        } elseif ($total_transaksi >= 100000) {
-            $points = 15;
-        } elseif ($total_transaksi >= 10000) {
-            $points = 1;
+        $totalBiayaBayar = $total_transaksi;
+
+        while($totalBiayaBayar > 0){
+            if ($totalBiayaBayar >= 1000000) {
+                $points += 200;
+                $totalBiayaBayar -= 1000000;
+            } elseif ($totalBiayaBayar >= 500000) {
+                $points += 75;
+                $totalBiayaBayar -= 500000;
+            } elseif ($totalBiayaBayar >= 100000) {
+                $points += 15;
+                $totalBiayaBayar -= 100000;
+            } elseif($totalBiayaBayar < 10000){
+                break;
+            }else {
+                $points += 1;
+                $totalBiayaBayar -= 10000;
+            }
         }
-    
+
         $transactionDate = Carbon::parse($transactionDate);
         $birthday = Carbon::parse($birthday);
         $startBirthdayPeriod = $birthday->copy()->subDays(3);
@@ -525,7 +541,12 @@ class TbltransaksiController extends Controller
                 // Mengumpulkan bahan-bahan dari hampers
                 if (isset($tblproduk['tblhampers'])) {
                     foreach ($tblproduk['tblhampers']['tbldetailhampers'] as $detailHampers) {
-                        $kuantitasForHampers = $kuantitasProduk * $detailHampers['Kuantitas'];
+                        if($detailHampers['Kuantitas'] < 1){
+                            $kuantitasForHampers = $kuantitasProduk;    
+                        }else{
+                            $kuantitasForHampers = $kuantitasProduk * $detailHampers['Kuantitas'];
+                        }
+
                         if (isset($detailHampers['tblresep'])) {
                             $ingredients = $this->collectIngredientsFromRecipe($detailHampers['tblresep']['tbldetailresep'], $ingredients, $kuantitasForHampers);
                         }
@@ -619,8 +640,8 @@ class TbltransaksiController extends Controller
 
             $transaksi = tbltransaksi::with(['tblAlamat', 'tbldetailtransaksi.tblproduk', 'tblcustomer'])
                 ->where('ID_Customer', $id)
-                ->where('Status', 'Menunggu Pembayaran')
-                ->whereDate('Tanggal_Transaksi', '<', $date)
+                // ->where('Status', 'Menunggu Pembayaran')
+                // ->whereDate('Tanggal_Transaksi', '<', $date)
                 ->orderBy('Tanggal_Transaksi', 'asc')
                 ->get();
 
@@ -638,6 +659,31 @@ class TbltransaksiController extends Controller
         }catch(\Exception $e){
             return response()->json([
                 'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function MOChangeToDiproses($id){
+        try{
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'History Transaksi tidak ditemukan',
+                    'data' => null,
+                ]);
+            }
+
+            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diproses']);
+
+            return response()->json([
+                'message' => 'Status Transaksi berhasil diubah',
+                'data' => $transaksi,
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Update Transaksi Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }

@@ -72,6 +72,10 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::get('/customerAddress/{id}', [App\Http\Controllers\TblalamatController::class, 'getSpesificAddressByIdUser']);
     Route::get('/customerTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiToProduk']);
 
+    Route::get('/history', [App\Http\Controllers\TblhistorysaldoController::class, 'getAllHistoryTransaction']);
+    Route::put('/historyAcceptSaldo/{id}', [App\Http\Controllers\TblhistorysaldoController::class, 'adminAcceptHistory']);
+    Route::delete('/historyRejectSaldo/{id}', [App\Http\Controllers\TblhistorysaldoController::class, 'adminRejectHistory']);
+
     Route::get('/alamat', [App\Http\Controllers\TblalamatController::class, 'ShowAllAlamat']);
     Route::get('/alamat/no-jarak', [App\Http\Controllers\TblalamatController::class, 'ShowAllAlamatWithNoJarak']);
     Route::get('/alamat/{idC}/{idA}', [App\Http\Controllers\TblalamatController::class, 'ShowOneAlamat']);
@@ -100,6 +104,12 @@ Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
     //Rute yang cuma bisa diakses Owner
     Route::get('/owner/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
     Route::get('/owner/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
+
+    Route::post('/OlaporanPresensiKaryawan', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensi']);
+    Route::post('/OlaporanPresensiKaryawanByBulanTahun', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensiByBulanTahun']);
+    Route::post('/OlaporanPemasukanPengeluaran', [App\Http\Controllers\LaporanController::class, 'getLaporanPemasukanPengeluaranBulanan']);
+    Route::post('/OlaporanPemasukanPengeluaranByBulanTahun', [App\Http\Controllers\LaporanController::class, 'rekapTransaksiPenitipBulan']);
+    Route::post('/OlaporanPenitipan', [App\Http\Controllers\LaporanController::class, 'rekapTransaksiPenitipBulan']);
 });
 
 Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
@@ -137,8 +147,11 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::put('/MORejectTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MORejectTransaction']);
     Route::get('/getAllIngredientsAndProduct/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getAllIngredientsAndProduct']);
 
-    Route::get('/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
-    Route::get('/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
+    Route::post('/laporanPresensiKaryawan', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensi']);
+    Route::post('/laporanPresensiKaryawanByBulanTahun', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensiByBulanTahun']);
+    Route::post('/laporanPemasukanPengeluaran', [App\Http\Controllers\LaporanController::class, 'getLaporanPemasukanPengeluaranBulanan']);
+    Route::post('/laporanPemasukanPengeluaranByBulanTahun', [App\Http\Controllers\LaporanController::class, 'rekapTransaksiPenitipBulan']);
+    Route::post('/laporanPenitipan', [App\Http\Controllers\LaporanController::class, 'rekapTransaksiPenitipBulan']);
 });
 
 Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
@@ -153,6 +166,12 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
 
     Route::get('/customerUnPayed', [App\Http\Controllers\TblcustomerController::class, 'showAllNeedToPay']);
     Route::post('/sendImageForPaying', [App\Http\Controllers\TblcustomerController::class, 'sendImageForPaying']);
+
+    Route::get('/getTransaksiByIdCustomer/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiByIdCustomer']);
+    Route::post('/sendProofPayment', [App\Http\Controllers\TbltransaksiController::class, 'sendProofPayment']);
+
+    Route::post('/customerSaldo', [App\Http\Controllers\TblhistorysaldoController::class, 'customerRequestSaldo']);
+    Route::get('/customerSaldo', [App\Http\Controllers\TblhistorysaldoController::class, 'customerGetAllHistory']);
 });
 
 // Temporary Seto

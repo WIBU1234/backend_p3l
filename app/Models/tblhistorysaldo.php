@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class tblhistorysaldo extends Model
 {
     use HasFactory;
+    public $timestamps = false;
     protected $table = 'tblhistorysaldo';
     protected $primaryKey = 'ID_History';
     protected $fillable = [

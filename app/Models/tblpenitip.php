@@ -19,4 +19,8 @@ class tblpenitip extends Model
     public function titipan(){
         return $this->hasMany(tbltitipan::class, 'ID_Penitip');
     }
+
+    public function tbltitipan(){
+        return $this->hasMany(tbltitipan::class, 'ID_Penitip');
+    }
 }
