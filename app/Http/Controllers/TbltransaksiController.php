@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\tblalamat;
+use App\Models\tblpegawai;
 use App\Models\tblpenggunaanbahanbaku;
 use App\Models\tblproduk;
 use App\Models\tbltransaksi;
 use App\Models\tblcustomer;
 use App\Models\tblbahanbaku;
 use App\Models\tbldetailtransaksi;
+use DateTime;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +21,7 @@ class TbltransaksiController extends Controller
 {
     public function index()
     {
-        $transaksi = tbltransaksi::with(['tblAlamat', 'tbldetailtransaksi.tblproduk'])
+        $transaksi = tbltransaksi::with(['tblalamat', 'tblcustomer', 'products', 'tbldetailtransaksi.tblproduk'])
             ->get();
 
         if ($transaksi->count() == 0) {
@@ -37,17 +39,22 @@ class TbltransaksiController extends Controller
 
     public function store(request $request) {
         try {
+            $lusa = Carbon::now()->addDays(2)->format('Y-m-d');
+
             $user = Auth::user();
-            
-            $totalTransaksi = tbltransaksi::count();
 
             $storeTransaksi = $request->all();
+
+            //Dapetin Pegawai Admin
+            $pegawai = tblpegawai::where('ID_Jabatan', 2)->first();
             
             $validate = Validator::make($storeTransaksi, [
-                'ID_Pegawai' => 'required',
-                'ID_Alamat' => 'required',
-                'Total_Transaksi' => 'required',
+                'Poin' => 'required',
+                'products' => 'required',
                 'Tanggal_Ambil' => 'required',
+                'Total_Transaksi' => 'required',
+                'ID_Alamat' => 'required',
+                'ID_JenisPengiriman' => 'required'
             ]);
 
             if($validate->fails()) {
@@ -55,34 +62,256 @@ class TbltransaksiController extends Controller
                     'message' => $validate->errors(),
                     'status' => 404
                 ], 404);
+            } 
+
+            $totalHarga = $storeTransaksi['Total_Transaksi'];
+
+            $storeTransaksi['ID_Transaksi'] = $this->generateIDTrans();
+            $storeTransaksi['ID_Customer'] = $user->ID_Customer;
+            $storeTransaksi['ID_Pegawai'] = $pegawai->ID_Pegawai;
+            if ($storeTransaksi['ID_JenisPengiriman'] == 3) {
+                $storeTransaksi['Status'] = 'Menunggu Konfirmasi Admin';
             } else {
-
-                if ($totalTransaksi < 10)
-                    $totalTransaksi = '00' . $totalTransaksi;
-                else if ($totalTransaksi < 100)
-                    $totalTransaksi = '0' . $totalTransaksi;
-                else
-                    $totalTransaksi = strval($totalTransaksi);
-
-                $storeTransaksi['ID_Transaksi'] = date('y') . '.' . date('m') . '.' . $totalTransaksi;
-                $storeTransaksi['ID_Customer'] = $user->ID_Customer;
                 $storeTransaksi['Status'] = 'Menunggu Pembayaran';
-                $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
-                $storeTransaksi['Total_Pembayaran'] = 0;
+                $storeTransaksi['Total_Bayar'] = $totalHarga;
+            }
 
-                $transaksi = tbltransaksi::create($storeTransaksi);
+            $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
+            $storeTransaksi['Tipe_Transaksi'] = 0;
 
+            $transaksi = tbltransaksi::create($storeTransaksi);
+            if ($request->has('products')) {
+                $products = $request->input('products');
+    
+                $productsData = [];
+                foreach ($products as $index => $data) {
+                    
+                    $productsData[$index] = [
+                        'ID_Produk' => $data['ID_Produk'],
+                        'Tipe' => $data['Tipe'],
+                        'Kuantitas' => $data['Kuantitas'],
+                        'Sub_Total' => $data['Sub_Total'] 
+                    ];
+                }
+    
+                foreach ($productsData as $data) {
+                    $transaksi->products()->attach($data['ID_Produk'], [
+                        'Tipe' => $data['Tipe'],
+                        'Kuantitas' => $data['Kuantitas'],
+                        'Sub_Total' => $data['Sub_Total']
+                    ]);
+                }
+            }
+
+            $this->reducePoin($storeTransaksi['Poin']);
+
+            if ($transaksi->save()) {
                 return response([
                     'message' => 'Store Transaksi Success',
+                    'status' => $transaksi->Status,
+                    'poin' => $user->Poin,
                     'data' => $transaksi,
                 ], 200);
             }
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Store Transaksi Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }
+    }
+
+    public function storeReady(request $request) {
+        try {
+            //$lusa = Carbon::now()->addDays(2);
+            $today = Carbon::now();
+
+            $user = Auth::user();
+
+            $storeTransaksi = $request->all();
+
+            //Dapetin Pegawai Admin
+            $pegawai = tblpegawai::where('ID_Jabatan', 2)->first();
+            
+            $validate = Validator::make($storeTransaksi, [
+                'Poin' => 'required',
+                'products' => 'required',
+                'Total_Transaksi' => 'required',
+                'ID_Alamat' => 'required',
+                'ID_JenisPengiriman' => 'required'
+            ]);
+
+            if($validate->fails()) {
+                return response([
+                    'message' => $validate->errors(),
+                    'status' => 404
+                ], 404);
+            } 
+
+            $storeTransaksi['ID_Transaksi'] = $this->generateIDTrans();
+            $storeTransaksi['ID_Customer'] = $user->ID_Customer;
+            $storeTransaksi['ID_Pegawai'] = $pegawai->ID_Pegawai;
+            $totalHarga = $storeTransaksi['Total_Transaksi'];
+
+            if ($storeTransaksi['ID_JenisPengiriman'] == 3) {
+                $storeTransaksi['Status'] = 'Menunggu Konfirmasi Admin';
+            } else {
+                $storeTransaksi['Status'] = 'Menunggu Pembayaran';
+                $storeTransaksi['Total_Bayar'] = $totalHarga;
+            }
+            $storeTransaksi['Tanggal_Transaksi'] = date('Y-m-d H:i:s');
+            $storeTransaksi['Tanggal_Ambil'] = $today;
+            $storeTransaksi['Tipe_Transaksi'] = 1;
+
+            $transaksi = tbltransaksi::create($storeTransaksi);
+            if ($request->has('products')) {
+                $products = $request->input('products');
+    
+                $productsData = [];
+                foreach ($products as $index => $data) {
+                    
+                    $productsData[$index] = [
+                        'ID_Produk' => $data['ID_Produk'],
+                        'Tipe' => $data['Tipe'],
+                        'Kuantitas' => $data['Kuantitas'],
+                        'Sub_Total' => $data['Sub_Total'] 
+                    ];
+                }
+    
+                foreach ($productsData as $data) {
+                    $transaksi->products()->attach($data['ID_Produk'], [
+                        'Tipe' => $data['Tipe'],
+                        'Kuantitas' => $data['Kuantitas'],
+                        'Sub_Total' => $data['Sub_Total']
+                    ]);
+                }
+            }
+
+            $this->reducePoin($storeTransaksi['Poin']);
+
+            if ($transaksi->save()) {
+                return response([
+                    'message' => 'Store Transaksi Success',
+                    'today' => $today,
+                    'data' => $transaksi,
+                ], 200);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Store Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    private function deleteStock($produkID, $quantity) {
+        $produk = tblproduk::find($produkID);
+
+        if ($produk === null) {
+            return;
+        } 
+
+        if ($produk->ID_Kategori === 4) {
+            $produk->StokReady -= $quantity;
+        }
+
+        $produk->save();
+    }
+
+    private function deleteReadyStock($produkID, $quantity) {
+        $produk = tblproduk::find($produkID);
+
+        if ($produk === null) {
+            return;
+        } 
+
+        if ($produk->StokReady !== 0) {
+            $produk->StokReady -= $quantity;
+        }
+
+        $produk->save();
+    }
+
+    // public function addReady($transID) {
+    //     $transaksi = tbltransaksi::find($transID)->first();
+
+        
+    // }
+
+    private function addReadyStock($produkID, $quantity) {
+        $produk = tblproduk::find($produkID);
+
+        if ($produk === null) {
+            return;
+        } 
+
+        if ($produk->StokReady !== 0) {
+            $produk->StokReady += $quantity;
+            $produk->save();
+        }
+    }
+
+    private function generateIDTrans()
+    {
+        $year = date('y');
+        $month = date('m');
+
+        $latestTransaksi = tbltransaksi::latest('ID_Transaksi')->first();
+        if ($latestTransaksi) {
+            $lastID = $latestTransaksi->ID_Transaksi;
+            $parts = explode('.', $lastID);
+            $index = intval($parts[2]);
+            $newID = $index + 1;
+        } else {
+            $newID = 1;
+        }
+
+        // Make Sure gak ada ID kedoble
+        do {
+            $id = $year . '.' . $month . '.' . $newID;
+            $existingTrans = tbltransaksi::where('ID_Transaksi', $year . '.' . $month . '.' . $id)->first();
+            $newID++;
+        } while ($existingTrans);
+
+        return $id;
+    }
+
+    public function countPoin(String $id_trans) //Buat MO
+    {
+        $transaksi = tbltransaksi::where('ID_Transaksi', $id_trans)->first();
+        $totalHarga = $transaksi->Total_Transaksi;
+        $poin = 0;
+
+        
+        // Setiap pemesanan dengan kelipatan 1.000.000 mendapatkan 200 poin
+        $poin += intdiv($totalHarga, 1000000) * 200;
+        $totalHarga %= 1000000;
+        
+        // Setiap pemesanan dengan kelipatan 500.000 mendapatkan 75 poin.
+        $poin += intdiv($totalHarga, 500000) * 75;
+        $totalHarga %= 500000;
+
+        // Setiap pemesanan dengan kelipatan 100.000 mendapatkan 15 poin.
+        $poin += intdiv($totalHarga, 100000) * 15;
+        $totalHarga %= 100000;
+
+        // Setiap pemesanan dengan kelipatan 10.000 mendapatkan 1 poin.
+        $poin += intdiv($totalHarga, 10000) * 1;
+
+        return $poin;
+    }
+
+    private function reducePoin($poin)
+    {
+        $user = Auth::user();
+
+        if ($user->Poin > $poin) {
+            $user->Poin -= $poin;
+        }
+
+        $user->save();
     }
 
 
@@ -491,6 +720,63 @@ class TbltransaksiController extends Controller
         }
     }
 
+    public function getIngredientsOfProduct($id){
+        try{
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+    
+            // if ($transaksi == null) {
+            //     return response()->json([
+            //         'message' => 'History Transaksi tidak ditemukan',
+            //         'data' => null,
+            //     ]);
+            // }
+
+            // if ($transaksi->Status != 'diterima') {
+            //     return response()->json([
+            //         'message' => 'Transaksi belum diterima MO',
+            //         'data' => $transaksi,
+            //     ]);
+            // }
+    
+            $customer = tblcustomer::where('ID_Customer', $transaksi->ID_Customer)->first();
+    
+            if ($customer == null) {
+                return response()->json([
+                    'message' => 'Customer tidak ditemukan || error ID_Customer',
+                    'data' => null,
+                ]);
+            }
+    
+            $total_transaksi = $transaksi->Total_Transaksi;
+    
+            $products = tbltransaksi::with([
+                'tbldetailtransaksi.tblproduk' => function($query) {
+                    $query->with([
+                        'tblresep.tbldetailresep',
+                        'tblhampers' => function($query) {
+                            $query->with('tbldetailhampers.tblresep.tbldetailresep');
+                        }
+                    ]);
+                }
+            ])->where('ID_Transaksi', $id)->get();
+    
+            $ingredients = $this->collectIngredients($products);
+    
+            return response()->json([
+                'message' => 'Transaksi berhasil diterima',
+                'data' => [
+                    'products' => $products,
+                    'ingredients' => $ingredients,
+                ],
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Fetch Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     private function calculatePoints($total_transaksi, $transactionDate, $birthday) {
         $points = 0;
         $totalBiayaBayar = $total_transaksi;
@@ -634,6 +920,32 @@ class TbltransaksiController extends Controller
         }
     }
 
+    public function getCompleteTransCust() {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not authenticated',
+                'data' => null
+            ], 401);
+        }
+
+        $transaksi = tbltransaksi::where('ID_Customer', $user->ID_Customer)
+                                ->where('Status', 'Selesai')->with(['tblcustomer', 'tblalamat', 'products', 'tbljenispengiriman'])->get();
+
+        if ($transaksi->count() == 0) {
+            return response()->json([
+                'message' => 'Transaksi tidak ditemukan',
+                'data' => null
+            ], 404);
+        }
+                        
+        return response()->json([
+            'message' => 'Fetch Transaksi Success',
+            'data' => $transaksi,
+        ], 200);
+    }
+
     public function getTransaksiByIdCustomer($id){
         try{
             $date = Carbon::now();
@@ -659,31 +971,6 @@ class TbltransaksiController extends Controller
         }catch(\Exception $e){
             return response()->json([
                 'message' => 'Fetch Transaksi Failed',
-                'data' => $e->getMessage(),
-            ], 400);
-        }
-    }
-
-    public function MOChangeToDiproses($id){
-        try{
-            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
-
-            if ($transaksi == null) {
-                return response()->json([
-                    'message' => 'History Transaksi tidak ditemukan',
-                    'data' => null,
-                ]);
-            }
-
-            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diproses']);
-
-            return response()->json([
-                'message' => 'Status Transaksi berhasil diubah',
-                'data' => $transaksi,
-            ]);
-        }catch(\Exception $e){
-            return response()->json([
-                'message' => 'Update Transaksi Failed',
                 'data' => $e->getMessage(),
             ], 400);
         }
@@ -1008,6 +1295,91 @@ class TbltransaksiController extends Controller
         }
     }
 
+    public function ProcessingTransaction() {
+        try {
+            $tommorow = new DateTime('tomorrow');
+            $tommorow->format('Y-m-d');
+
+            $transaksi = tbltransaksi::whereIn('Status', ['Menunggu Pembayaran', 'Pembayaran Valid', 'Menunggu Konfirmasi Admin', 'diterima'])
+                                    ->whereNotIn('Status', ['Ditolak', 'Diproses', 'Siap Di-Pickup', 'Sedang Dikirim Kurir', 'Sudah Di-Pickup', 'Selesai'])
+                                    ->where('Tipe_Transaksi', 0)
+                                    ->where('Tanggal_Ambil', $tommorow)
+                                    ->with(['tblcustomer', 'products', 'products.tblresep', 'products.tblresep.tbldetailresep'])->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Transaksi tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Fetch Data Success',
+                'date' => $tommorow,
+                'data' => $transaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error Update Data Transaksi Expired',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function MOChangeToDiproses($id){
+        try{
+            $transaksi = tbltransaksi::where('ID_Transaksi', $id)->first();
+
+            if ($transaksi == null) {
+                return response()->json([
+                    'message' => 'History Transaksi tidak ditemukan',
+                    'data' => null,
+                ]);
+            }
+
+            //$total_transaksi = $transaksi->Total_Transaksi;
+            //$points = $this->calculatePoints($total_transaksi, $transaksi->Tanggal_Transaksi, $customer->Tanggal_Lahir);
+    
+            // $products = tbltransaksi::with([
+            //     'tbldetailtransaksi.tblproduk' => function($query) {
+            //         $query->with([
+            //             'tblresep.tbldetailresep',
+            //             'tblhampers' => function($query) {
+            //                 $query->with('tbldetailhampers.tblresep.tbldetailresep');
+            //             }
+            //         ]);
+            //     }
+            // ])->where('ID_Transaksi', $id)->get();
+    
+            // $ingredients = $this->collectIngredients($products);
+
+            // foreach ($ingredients as $ingredient) {
+            //     tblpenggunaanbahanbaku::create([
+            //         'ID_Bahan_Baku' => $ingredient['ID_Bahan_Baku'],
+            //         'Kuantitas' => $ingredient['Kuantitas'],
+            //         'Tanggal' => Carbon::now(),
+            //     ]);
+            //     $iniBahanBaku = tblbahanbaku::where('ID_Bahan_Baku', $ingredient['ID_Bahan_Baku'])->first();
+
+            //     tblbahanbaku::where('ID_Bahan_Baku', $ingredient['ID_Bahan_Baku'])
+            //         ->first()
+            //         ->update(['Stok' => $iniBahanBaku->Stok - $ingredient['Kuantitas']]);
+            // }
+
+            tbltransaksi::where('ID_Transaksi', $id)->update(['Status' => 'diproses']);
+
+            return response()->json([
+                'message' => 'Status Transaksi berhasil diubah',
+                'data' => $transaksi,
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'Update Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     public function LaporanPenjualanTahunan($tahun) {
         try {
             $transaksi = DB::table('tbltransaksi as T')
@@ -1040,6 +1412,58 @@ class TbltransaksiController extends Controller
                 'data' => $transaksi,
                 'Total_Penjualan' => $transaksi->sum('total_pendapatan'),
             ]);
+
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Laporan Penjualan Bulanan',
+                'data' => $laporanTransaksi,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error On Making Summary Penjualanan Bulanan',
+                'data' => $e->getMessage(),
+            ], 200);
+        }
+    }
+
+    public function laporanPenjualanBulanan($bulan, $tahun) {
+        try {
+            $transaksi = tbltransaksi::whereMonth('Tanggal_Transaksi', $bulan)
+                                  ->whereYear('Tanggal_Transaksi', $tahun)
+                                  ->where('Status', 'Selesai')
+                                  ->with(['tblcustomer', 'products'])
+                                  ->get();
+
+            if ($transaksi->count() == 0) {
+                return response()->json([
+                    'message' => 'Laporan untuk bulan ' . $bulan . ' tahun ' . $tahun . ' kosong',
+                    'data' => null,
+                ], 200);
+            }
+
+            $groupedTransactions = [];
+            foreach ($transaksi as $trans) {
+                foreach ($trans->products as $product) {
+                    if (!isset($groupedTransactions[$product->Nama_Produk])) {
+                        $groupedTransactions[$product->Nama_Produk] = [
+                            'harga' => $product->Harga,
+                            'total_terjual' => 0,
+                            'total_pendapatan' => 0,
+                            'transaksi' => [],
+                        ];
+                    }
+                    $groupedTransactions[$product->Nama_Produk]['total_terjual'] += $product->pivot->Kuantitas;
+                    $groupedTransactions[$product->Nama_Produk]['total_pendapatan'] += $product->pivot->Sub_Total;
+                    $groupedTransactions[$product->Nama_Produk]['transaksi'][] = $trans;
+                }
+            }
+
+            $laporanTransaksi = [
+                'Tahun' => $tahun,
+                'Bulan' => $bulan,
+                'Tanggal_Cetak' => date('Y-m-d'),
+                'data' => $groupedTransactions,
+                'Total_Penjualan' => $transaksi->sum('Total_Transaksi'),
+            ];
 
             return response()->json([
                 'message' => 'Berhasil Mendapatkan Laporan Penjualan Bulanan',

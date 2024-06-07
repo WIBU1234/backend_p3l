@@ -2,11 +2,47 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\tblpenggunaanbahanbaku;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TblpenggunaanbahanbakuController extends Controller
 {
+    public function index() {
+        $materials = tblpenggunaanbahanbaku::with(['tblbahanbaku'])
+                    ->get();
+
+        // $groupedMaterial = [];
+        // foreach ($materials as $material) {
+        //     $tanggal = $material->Tanggal;
+        //     $id_bahan = $material->tblbahanbaku->Nama_Bahan;
+
+        //     if (!isset($groupedMaterial[$tanggal])) {
+        //         $groupedMaterial[$tanggal] = [];
+        //     }
+
+        //     if (!isset($groupedMaterial[$tanggal][$id_bahan])) {
+        //         $groupedMaterial[$tanggal][$id_bahan] = [
+        //             'Kuantitas' => 0,
+        //             'Satuan' => $material->tblbahanbaku->Satuan
+        //         ];
+        //     }
+
+        //     $groupedMaterial[$tanggal][$id_bahan]['Kuantitas'] += $material->Kuantitas;
+        // }
+
+        if(count($materials) > 0) {
+            return response([
+                'message' => 'Retrieve All Success',
+                'data' => $materials
+            ], 200);
+        }
+
+        return response([
+            'message' => 'Empty',
+            'data' => null
+        ], 400);
+    }
     public function LaporanPenggunaanBahanBaku($tglAwal, $tglAkhir) {
         try {
             $laporanPBB = DB::table('tblpenggunaanbahanbaku as PBB')

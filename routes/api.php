@@ -66,6 +66,7 @@ Route::middleware(['auth:api-pegawai', 'role:Admin'])->group(function () {
     Route::put('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'update']);
     Route::delete('/resep/{id}', [App\Http\Controllers\TblresepController::class, 'destroy']);
 
+    
     Route::get('/customerGetAll', [App\Http\Controllers\TblcustomerController::class, 'getAllCustomer']);
     Route::post('/customerSearch', [App\Http\Controllers\TblcustomerController::class, 'searchGetCustomer']);
     Route::get('/customerHistory/{id}', [App\Http\Controllers\TblcustomerController::class, 'getCustomerHistory']);
@@ -104,6 +105,8 @@ Route::middleware(['auth:api-pegawai', 'role:Owner'])->group(function () {
     //Rute yang cuma bisa diakses Owner
     Route::get('/owner/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
     Route::get('/owner/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
+
+    Route::get('/owner/laporan-penjualan-bulanan/{bulan}/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'laporanPenjualanBulanan']);
 
     Route::post('/OlaporanPresensiKaryawan', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensi']);
     Route::post('/OlaporanPresensiKaryawanByBulanTahun', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensiByBulanTahun']);
@@ -146,6 +149,17 @@ Route::middleware(['auth:api-pegawai', 'role:MO'])->group(function () {
     Route::put('/MOAcceptTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOAcceptTransaction']);
     Route::put('/MORejectTransaction/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MORejectTransaction']);
     Route::get('/getAllIngredientsAndProduct/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getAllIngredientsAndProduct']);
+    Route::get('/ingredients-product/{id}', [App\Http\Controllers\TbltransaksiController::class, 'getIngredientsOfProduct']);
+
+    Route::put('/processing-product/{id}', [App\Http\Controllers\TbltransaksiController::class, 'MOChangeToDiproses']);
+    Route::get('/getTransactionAccepted', [App\Http\Controllers\TbltransaksiController::class, 'ProcessingTransaction']);
+
+    Route::get('/penggunaan-bahanbaku', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'index']);
+
+    
+    Route::get('/laporan-penjualan-bulanan/{bulan}/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'laporanPenjualanBulanan']);
+    Route::get('/laporan-penggunaan-bahan-baku/{tglAwal}/{tglAkhir}', [App\Http\Controllers\TblpenggunaanbahanbakuController::class, 'LaporanPenggunaanBahanBaku']);
+    Route::get('/laporan-penjualan-tahunan/{tahun}', [App\Http\Controllers\TbltransaksiController::class, 'LaporanPenjualanTahunan']);
 
     Route::post('/laporanPresensiKaryawan', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensi']);
     Route::post('/laporanPresensiKaryawanByBulanTahun', [App\Http\Controllers\LaporanController::class, 'getLaporanPresensiByBulanTahun']);
@@ -160,9 +174,31 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     route::get('/customer/transaksi-selesai', [App\Http\Controllers\TbltransaksiController::class, 'ShowTransaksiSelesai']);
     route::put('/customer/confirm-transaksi-selesai/{id}', [App\Http\Controllers\TbltransaksiController::class, 'UpdateTransaksiSelesaiCustomer']);
     route::get('/customer/detail-transaksi/{id}', [App\Http\Controllers\TbldetailtransaksiController::class, 'ShowDetailTransaksi']);
+    Route::get('/produk-customer', [App\Http\Controllers\TblprodukController::class, 'index']);
+    Route::get('/produk/on-date/{date}', [App\Http\Controllers\TblprodukController::class, 'showProductByTglAmbil']);
+    Route::get('/produk-customer/{id}', [App\Http\Controllers\TblprodukController::class, 'show']);
+
+    // Mengurangi stok dan kuota berdasarkan id transaksinya (Not Done)
+    Route::post('/reduce-stok/{id_trans}', [App\Http\Controllers\TblprodukController::class, 'reduceStok']);
+    Route::post('/reduce-stok-ready/{id_trans}', [App\Http\Controllers\TblprodukController::class, 'reduceReady']);
+
     Route::get('/customer/history', [App\Http\Controllers\TbltransaksiController::class, 'getTransaksiCustomer']);
+    Route::get('/complete-order', [App\Http\Controllers\TbltransaksiController::class, 'getCompleteTransCust']);
     Route::get('/customer/history/{nama}', [App\Http\Controllers\TbltransaksiController::class, 'searchDataHistoryTransaksi']);
+    
+    Route::get('/detail-transaksi', [App\Http\Controllers\TbldetailtransaksiController::class, 'index']);
+    Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'index']);
+    Route::post('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'store']);
+    Route::post('/transaksi-ready', [App\Http\Controllers\TbltransaksiController::class, 'storeReady']);
+
+    Route::put('/reduce-poin', [App\Http\Controllers\TbltransaksiController::class, 'reducePoin']);
+    Route::put('/update-poin', [App\Http\Controllers\TblcustomerController::class, 'updatePoin']);
+
+    Route::get('/kategori', [App\Http\Controllers\TblkategoriController::class, 'getAllKategori']);
+
     Route::post('/logoutCustomer', [App\Http\Controllers\AuthController::class, 'logoutCustomer']);
+
+    Route::get('/customer-alamat', [App\Http\Controllers\TblcustomerController::class, 'getAlamatUser']);
 
     Route::get('/customerUnPayed', [App\Http\Controllers\TblcustomerController::class, 'showAllNeedToPay']);
     Route::post('/sendImageForPaying', [App\Http\Controllers\TblcustomerController::class, 'sendImageForPaying']);
@@ -173,6 +209,10 @@ Route::middleware(['auth:api-customer', 'role:Customer'])->group(function () {
     Route::post('/customerSaldo', [App\Http\Controllers\TblhistorysaldoController::class, 'customerRequestSaldo']);
     Route::get('/customerSaldo', [App\Http\Controllers\TblhistorysaldoController::class, 'customerGetAllHistory']);
 });
+
+Route::get('/produk-today', [App\Http\Controllers\TblprodukController::class, 'showProductToday']);
+Route::get('/detail-transaksi-bahan', [App\Http\Controllers\TbldetailtransaksibahanbakuController::class, 'index']);
+
 
 // Temporary Seto
 Route::get('/getBahanBakuAll', [App\Http\Controllers\TblbahanbakuController::class, 'index']);
@@ -225,11 +265,7 @@ Route::group(['middleware'=>'auth:api-customer'], function() {
 
     Route::get('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'index']);
     Route::post('/customer/alamat', [App\Http\Controllers\TblalamatController::class, 'store']);
-
-    Route::get('/produk', [App\Http\Controllers\TblprodukController::class, 'index']);
 });
-
-Route::get('/transaksi', [App\Http\Controllers\TbltransaksiController::class, 'index']);
 
 Route::post('/uploadFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testUpload']);
 Route::post('/deleteFotoCloud', [App\Http\Controllers\TblcustomerController::class, 'testDelete']);

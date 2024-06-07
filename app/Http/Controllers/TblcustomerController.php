@@ -109,6 +109,37 @@ class TblcustomerController extends Controller
         }
     }
 
+    public function updatePoin(Request $request) {
+        $user = Auth::user();
+        $storedData = $request->all();
+        try {
+            $validate = Validator::make($storedData, [
+                'Poin' => 'required'
+            ]);
+
+            if($validate->fails()) {
+                return response([
+                    'message' => $validate->errors(),
+                    'status' => 404
+                ], 404);
+            } 
+
+            $user->Poin = $storedData['Poin'];
+            
+            if ($user->save()) {
+                return response([
+                    'message' => 'Store Transaksi Success',
+                    'data' => $user,
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Store Transaksi Failed',
+                'data' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     public function resetPassword(Request $request){
         try{
             $request->validate([
@@ -180,7 +211,7 @@ class TblcustomerController extends Controller
 
     public function index() {
         $user = Auth::user();
-        $tblcustomer = tblcustomer::find($user->ID_Customer);
+        $tblcustomer = tblcustomer::find($user->ID_Customer)->with(['tblalamat'])->get();
         if (!$user) {
             return response()->json([
                 'message' => 'User Not Found',
@@ -191,6 +222,24 @@ class TblcustomerController extends Controller
                 'data' => $tblcustomer
             ], 200);
         }
+    }
+
+    public function getAlamatUser() {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'User Not Found',
+            ], 404);
+        }
+    
+        // Fetch the user's address
+        $alamat = $user->tblalamat;
+    
+        return response()->json([
+            'message' => 'User Found',
+            'data' => $alamat,
+        ], 200);
     }
 
     public function updateProfile(Request $request) {

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class tbltransaksi extends Model
 {
@@ -27,6 +28,7 @@ class tbltransaksi extends Model
         "Tip",
         "Bukti_Pembayaran",
         "Tipe_Transaksi",
+        "Total_Bayar"
     ];
 
     public function tblcustomer() {
@@ -47,5 +49,11 @@ class tbltransaksi extends Model
 
     public function tbljenispengiriman() {
         return $this->belongsTo(tbljenispengiriman::class, 'ID_JenisPengiriman', 'ID_JenisPengiriman');
+    }
+
+    public function products() : BelongsToMany 
+    {
+        return $this->belongsToMany(tblproduk::class, 'tbldetailtransaksi', 'ID_Transaksi', 'ID_Produk')
+            ->withPivot('Kuantitas', 'Sub_Total', 'Tipe');
     }
 }

@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\tblhampers;
 use App\Models\tblproduk;
+use App\Models\tblresep;
+use App\Models\tbltitipan;
+use App\Models\tbltransaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 
 class TblprodukController extends Controller
 {
     public function index()
     {
-        $produk = tblproduk::all();
+        $produk = tblproduk::with(['kategori'])->get();
 
         if(count($produk) > 0) {
             return response([
@@ -49,11 +55,16 @@ class TblprodukController extends Controller
             }
 
             // upload gambar produk pada public/img disimpan path nya
-            $uploadFolder = 'img';
+            //$uploadFolder = 'img';
             $gambarProduk = $request->file('Gambar');
+            $originalName = $gambarProduk->getClientOriginalName();
 
-            $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
-            $gambarProdukPath = basename($gambarProdukFiles);
+            $cloudinaryController = new cloudinaryController();
+            $public_id = $cloudinaryController->sendImageToCloudinary($gambarProduk, $originalName);
+
+
+            //$gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
+            //$gambarProdukPath = basename($gambarProdukFiles);
 
             // pengaturan nilai stok dan stokready
             $stok = $request->has('Stok') ? $request->Stok : 0;
@@ -69,7 +80,7 @@ class TblprodukController extends Controller
                 'Harga' => $request->Harga,
                 'Stok' => $stok,
                 'StokReady' => $StokReady,
-                'Gambar' => $gambarProdukPath
+                'Gambar' => $public_id
             ]);
 
             return response([
@@ -106,11 +117,15 @@ class TblprodukController extends Controller
             }
 
             // upload gambar produk pada public/img disimpan path nya
-            $uploadFolder = 'img';
+            //$uploadFolder = 'img';
             $gambarProduk = $request->file('Gambar');
+            $originalName = $gambarProduk->getClientOriginalName();
 
-            $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
-            $gambarProdukPath = basename($gambarProdukFiles);
+            $cloudinaryController = new cloudinaryController();
+            $public_id = $cloudinaryController->sendImageToCloudinary($gambarProduk, $originalName);
+
+            // $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
+            // $gambarProdukPath = basename($gambarProdukFiles);
 
             // pengaturan nilai stok dan stokready
             //$stok = $request->has('Stok') ? $request->Stok : 0;
@@ -126,7 +141,7 @@ class TblprodukController extends Controller
                 'Harga' => $request->Harga,
                 'Stok' => $request->Stok,
                 'StokReady' => $StokReady,
-                'Gambar' => $gambarProdukPath
+                'Gambar' => $public_id
             ]);
 
             return response([
@@ -163,11 +178,15 @@ class TblprodukController extends Controller
             }
 
             // upload gambar produk pada public/img disimpan path nya
-            $uploadFolder = 'img';
+            //$uploadFolder = 'img';
             $gambarProduk = $request->file('Gambar');
+            $originalName = $gambarProduk->getClientOriginalName();
 
-            $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
-            $gambarProdukPath = basename($gambarProdukFiles);
+            $cloudinaryController = new cloudinaryController();
+            $public_id = $cloudinaryController->sendImageToCloudinary($gambarProduk, $originalName);
+
+            // $gambarProdukFiles = $gambarProduk->store($uploadFolder, 'public');
+            // $gambarProdukPath = basename($gambarProdukFiles);
 
             // pengaturan nilai stok dan stokready
             $stok = $request->has('Stok') ? $request->Stok : 0;
@@ -175,6 +194,7 @@ class TblprodukController extends Controller
 
             // Pengaturan ID resep
             $id = $initID . $this->generateIDProduk($initID);
+            
 
             $produk = tblproduk::create([
                 'ID_Produk' => $id,
@@ -183,7 +203,7 @@ class TblprodukController extends Controller
                 'Harga' => $request->Harga,
                 'Stok' => $stok,
                 'StokReady' => $StokReady,
-                'Gambar' => $gambarProdukPath
+                'Gambar' => $public_id
             ]);
 
             return response([
@@ -295,9 +315,320 @@ class TblprodukController extends Controller
         ], 404);
     }
 
+    public function showProductToday()
+    {
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $lusa = Carbon::now('Asia/Jakarta')->addDays(2)->format('Y-m-d');
+        $limit = 20;
+
+        $transaksiPO = tbltransaksi::where('Tanggal_Ambil', $lusa)
+                                ->where('Tipe_Transaksi', 0)->with(['products'])->get();
+
+        $transaksiReady = tbltransaksi::whereBetween('Tanggal_Ambil', [$today, $lusa])
+                                ->where('Tipe_Transaksi', 1)->with(['products'])->get();
+        
+        
+        $produk = tblproduk::with(['kategori'])->get();
+        // Save Stock PO
+        $produkReady = [];
+        $productQty = [];
+        
+        //kumpulin semua kuantitas produk di array productQty
+        foreach ($transaksiPO as $trans) {
+            foreach ($trans->products as $product) {
+                if (!isset($productQty[$product->ID_Produk])) {
+                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
+                } else {
+                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+
+        foreach ($transaksiPO as $trans) {
+            foreach ($trans->products as $product) {
+                if ($product->pivot->Tipe === 0.5) { 
+                    $productId = $product->ID_Produk;
+                    $kuantitas = $product->pivot->Kuantitas;
+                    
+                    if (isset($produkReady[$productId])) {
+                        $produkReady[$productId] += $kuantitas;
+                    } else {
+                        $produkReady[$productId] = $kuantitas;
+                    }
+                }
+            }
+        }
+
+        
+        foreach ($produk as $prod) {
+            if (isset($productQty[$prod->ID_Produk])) {
+                if ($prod->kategori->Nama_Kategori !== 'Titipan') {
+                    $prod->Stok = $limit - $productQty[$prod->ID_Produk];
+                } else {
+                    $prod->StokReady -= $productQty[$prod->ID_Produk];
+                }
+            } else {
+                if ($prod->kategori->Nama_Kategori !== 'Titipan') {
+                    $prod->Stok = $limit;
+                }
+            }
+        }
+
+        foreach ($produk as $prod) {
+            if (isset($produkReady[$prod->ID_Produk])) {
+                $prod->StokReady += ($productQty[$prod->ID_Produk] * 0.5);
+            } 
+        }
+
+        $productQty = [];
+
+        foreach ($transaksiReady as $trans) {
+            foreach ($trans->products as $product) {
+                if (!isset($productQty[$product->ID_Produk])) {
+                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
+                } else {
+                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+
+        foreach ($produk as $prod) {
+            if (isset($productQty[$prod->ID_Produk])) {
+                $prod->StokReady -= $productQty[$prod->ID_Produk];
+            } 
+        }
+
+        if (count($produk) > 0) {
+            return response([
+                'message' => 'Produk found',
+                'transaksi PO' => $transaksiPO,
+                'transaksi ready' => $transaksiReady,
+                'data' => $produk
+            ], 200);
+        }
+
+        return response([
+            'message' => 'Produk not found',
+            'data' => null
+        ], 404);
+    }
+
+    public function showProductByTglAmbil(String $date)
+    {
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $limit = 20;
+
+        $transaksiPO = tbltransaksi::where('Tanggal_Ambil', $date)
+                                ->where('Tipe_Transaksi', 0)->with(['products'])->get();
+
+        $transaksiReady = tbltransaksi::whereBetween('Tanggal_Ambil', [$today, $date])
+                                ->where('Tipe_Transaksi', 1)->with(['products'])->get();
+        
+        
+        $produk = tblproduk::with(['kategori'])->get();
+        // Save Stock PO
+        $produkReady = [];
+        $productQty = [];
+        
+        //kumpulin semua kuantitas produk di array productQty
+        foreach ($transaksiPO as $trans) {
+            foreach ($trans->products as $product) {
+                if (!isset($productQty[$product->ID_Produk])) {
+                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
+                } else {
+                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+
+        //Simpan nilai produk 1/2 yang tambah
+        foreach ($transaksiPO as $trans) {
+            foreach ($trans->products as $product) {
+                if ($product->pivot->Tipe === 0.5) { 
+                    $productId = $product->ID_Produk;
+                    $kuantitas = $product->pivot->Kuantitas;
+                    
+                    if (isset($produkReady[$productId])) {
+                        $produkReady[$productId] += $kuantitas;
+                    } else {
+                        $produkReady[$productId] = $kuantitas;
+                    }
+                }
+            }
+        }
+        
+        foreach ($produk as $prod) {
+            if (isset($productQty[$prod->ID_Produk])) {
+                if ($prod->kategori->Nama_Kategori !== 'Titipan') {
+                    $prod->Stok = $limit - $productQty[$prod->ID_Produk];
+                } else {
+                    $prod->StokReady -= $productQty[$prod->ID_Produk];
+                }
+            } else {
+                if ($prod->kategori->Nama_Kategori !== 'Titipan') {
+                    $prod->Stok = $limit;
+                }
+            }
+        }
+
+        foreach ($produk as $prod) {
+            if (isset($produkReady[$prod->ID_Produk])) {
+                $prod->StokReady += ($productQty[$prod->ID_Produk] * 0.5);
+            } 
+        }
+
+        $productQty = [];
+
+        foreach ($transaksiReady as $trans) {
+            foreach ($trans->products as $product) {
+                if (!isset($productQty[$product->ID_Produk])) {
+                    $productQty[$product->ID_Produk] = $product->pivot->Kuantitas;
+                } else {
+                    $productQty[$product->ID_Produk] += $product->pivot->Kuantitas;
+                }
+            }
+        }
+
+        foreach ($produk as $prod) {
+            if (isset($productQty[$prod->ID_Produk])) {
+                $prod->StokReady -= $productQty[$prod->ID_Produk];
+            } 
+        }
+        
+        //Kurangi limit dengan array kuantitas
+
+        if (count($produk) > 0) {
+            return response([
+                'message' => 'Produk found',
+                'transaksi PO' => $transaksiReady,
+                'transaksi ready' => $produkReady,
+                'data' => $produk
+            ], 200);
+        }
+
+        return response([
+            'message' => 'Produk not found',
+            'data' => null
+        ], 404);
+    }
+
+    public function reduceStok(string $id_trans)
+    {
+        //Mengurangi kuota hampers dan resep saja
+        $transaksi = tbltransaksi::where('ID_Transaksi', $id_trans)->first();
+
+        if (!$transaksi || count($transaksi->products) == 0) {
+            return response([
+                'message' => 'Transaksi tidak ditemukan',
+                'data' => null
+            ], 404);
+        }
+
+        $updatedProducts = [];
+        $hampers = tblhampers::with(['tblproduk', 'resep'])->get();
+
+        foreach ($hampers as $hamper) {
+            foreach ($transaksi->products as $prod) {
+                if ($hamper->ID_Produk == $prod->ID_Produk) {
+                    $hamper->tblproduk->Stok -= $prod->pivot->Kuantitas;
+                    $hamper->tblproduk->save();
+                    $updatedProducts[] = $hamper->tblproduk;
+                }
+            }
+        }
+
+        $homecooks = tblresep::with(['tblproduk'])->get();
+
+        foreach ($homecooks as $homecook) {
+            foreach ($transaksi->products as $prod) {
+                if ($homecook->ID_Produk == $prod->ID_Produk) {
+                    $homecook->tblproduk->Stok -= $prod->pivot->Kuantitas;
+                    $homecook->tblproduk->save();
+                    $updatedProducts[] = $homecook->tblproduk;
+                }
+            }
+        }
+
+        if (count($updatedProducts) > 0) {
+            return response([
+                'message' => 'Update Produk Success',
+                'updated_products' => $updatedProducts
+            ], 200);
+        }
+        
+        return response([
+            'message' => 'Update Content Failed',
+            'data' => $transaksi
+        ], 400);
+    }
+
+    public function reduceReady(string $id_trans)
+    {
+        $transaksi = tbltransaksi::where('ID_Transaksi', $id_trans)->first();
+
+        if (!$transaksi || count($transaksi->products) == 0) {
+            return response([
+                'message' => 'Transaksi tidak ditemukan',
+                'data' => null
+            ], 404);
+        }
+
+        $updatedProducts = [];
+        $hampers = tblhampers::with(['tblproduk', 'resep'])->get();
+
+        foreach ($hampers as $hamper) {
+            foreach ($transaksi->products as $prod) {
+                if ($hamper->ID_Produk == $prod->ID_Produk) {
+                    $hamper->tblproduk->StokReady -= $prod->pivot->Kuantitas;
+                    $hamper->tblproduk->save();
+                    $updatedProducts[] = $hamper->tblproduk;
+                }
+            }
+        }
+
+        $homecooks = tblresep::with(['tblproduk'])->get();
+
+        foreach ($homecooks as $homecook) {
+            foreach ($transaksi->products as $prod) {
+                if ($homecook->ID_Produk == $prod->ID_Produk) {
+                    $homecook->tblproduk->StokReady -= $prod->pivot->Kuantitas;
+                    $homecook->tblproduk->save();
+                    $updatedProducts[] = $homecook->tblproduk;
+                }
+            }
+        }
+
+        $titipan = tbltitipan::with(['tblproduk'])->get();
+
+        foreach ($titipan as $titip) {
+            foreach ($transaksi->products as $prod) {
+                if ($titip->ID_Produk == $prod->ID_Produk) {
+                    $titip->tblproduk->StokReady -= $prod->pivot->Kuantitas;
+                    $titip->tblproduk->save();
+                    $updatedProducts[] = $titip->tblproduk;
+                }
+            }
+        }
+
+        if (count($updatedProducts) > 0) {
+            return response([
+                'message' => 'Update Produk Success',
+                'updated_products' => $updatedProducts
+            ], 200);
+        }
+        
+        return response([
+            'message' => 'Update Content Failed',
+            'data' => $transaksi
+        ], 400);
+    }
+
     public function destroy(string $id)
     {
         $produk = tblproduk::find($id);
+        $cloudinaryController = new cloudinaryController();
+        $response = $cloudinaryController->deleteImageFromCloudinary($produk->Gambar);
+
 
         if (is_null($produk)) {
             return response([
@@ -309,6 +640,7 @@ class TblprodukController extends Controller
         if ($produk->delete()) {
             return response([
                 'message' => 'Delete produk Success',
+                'image_status' => $response,
                 'data' => $produk
             ], 200);
         }
