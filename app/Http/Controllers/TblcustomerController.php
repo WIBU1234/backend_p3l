@@ -211,7 +211,10 @@ class TblcustomerController extends Controller
 
     public function index() {
         $user = Auth::user();
-        $tblcustomer = tblcustomer::find($user->ID_Customer)->with(['tblalamat'])->get();
+        // $tblcustomer = tblcustomer::find($user->ID_Customer)->with(['tblalamat'])->first();
+
+        $tblcustomer = tblcustomer::where('ID_Customer', $user->ID_Customer)->with('tblalamat')->first();
+
         if (!$user) {
             return response()->json([
                 'message' => 'User Not Found',
